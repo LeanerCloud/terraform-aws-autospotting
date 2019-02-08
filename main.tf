@@ -1,5 +1,17 @@
+module "label" {
+  source      = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.5.4"
+  context     = "${var.label_context}"
+  namespace   = "${var.label_namespace}"
+  environment = "${var.label_environment}"
+  stage       = "${var.label_stage}"
+  name        = "${var.label_name}"
+  attributes  = ["${var.label_attributes}"]
+  tags        = "${var.label_tags}"
+  delimiter   = "${var.label_delimiter}"
+}
+
 module "aws_lambda_function" {
-  source = "./lambda"
+  source = "./modules/lambda"
 
   label_context = "${module.label.context}"
 
