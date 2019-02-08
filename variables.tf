@@ -9,7 +9,6 @@ Example: 't2.*,m4.large'
 Using the 'current' magic value will only allow the same type as the
 on-demand instances set in the group's launch configuration.
 EOF
-
   default = ""
 }
 
@@ -20,7 +19,6 @@ in case you want to exclude specific types (also support globs).
 
 Example: 't2.*,m4.large'
 EOF
-
   default = ""
 }
 
@@ -39,6 +37,18 @@ variable "autospotting_on_demand_price_multiplier" {
   default     = "1.0"
 }
 
+variable "autospotting_spot_product_description" {
+  description = <<EOF
+The Spot Product or operating system to use when looking
+up spot price history in the market.
+
+Valid choices
+- Linux/UNIX | SUSE Linux | Windows
+- Linux/UNIX (Amazon VPC) | SUSE Linux (Amazon VPC) | Windows (Amazon VPC)
+EOF
+  default = "Linux/UNIX (Amazon VPC)"
+}
+
 variable "autospotting_spot_price_buffer_percentage" {
   description = "Percentage above the current spot price to place the bid"
   default     = "10.0"
@@ -50,41 +60,35 @@ variable "autospotting_bidding_policy" {
 }
 
 variable "autospotting_regions_enabled" {
-  description = "Regions that autospotting is watching"
+  description = "Regions in which autospotting is enabled"
   default     = ""
 }
 
 variable "autospotting_tag_filters" {
   description = <<EOF
-  Tags to filter which ASGs autospotting considers. By default, ASGs tagged
-  with spot-enbled=true will be operated on. In opt-out mode it operates on
-  all groups except those tagged with spot-enbled=false.
+Tags to filter which ASGs autospotting considers. If blank
+by default this will search for asgs with spot-enabled=true (when in opt-in
+mode) and will skip those tagged with spot-enabled=false when in opt-out
+mode.
 
-  You can set this to many tags, for example:
-  spot-enabled=true,Environment=dev,Team=vision"
-  EOF
+You can set this to many tags, for example:
+spot-enabled=true,Environment=dev,Team=vision
+EOF
   default = ""
 }
 
 variable "autospotting_tag_filtering_mode" {
   description = <<EOF
-  Controls the tag-based ASG filter. Supported values: 'opt-in' or 'opt-out'.
-  Defaults to opt-in mode, in which it only acts against the tagged groups. In
-  opt-out mode it works against all groups except for the tagged ones.
-  Use the opt-out mode carefully!
-  EOF
-
+Controls the tag-based ASG filter. Supported values: 'opt-in' or 'opt-out'.
+Defaults to opt-in mode, in which it only acts against the tagged groups. In
+opt-out mode it works against all groups except for the tagged ones.
+EOF
   default = "opt-in"
-}
-
-variable "autospotting_spot_product_description" {
-  description = "The Spot Product or operating system to use when looking up spot price history in the market. Valid choices: Linux/UNIX | SUSE Linux | Windows | Linux/UNIX (Amazon VPC) | SUSE Linux (Amazon VPC) | Windows (Amazon VPC)"
-  default = "Linux/UNIX (Amazon VPC)"
 }
 
 # Lambda configuration
 variable "lambda_zipname" {
-  description = "Name of the archive"
+  description = "Name of the archive, relative to the module"
   default     = "package/autospotting.zip"
 }
 
@@ -120,7 +124,7 @@ variable "lambda_run_frequency" {
 
 variable "lambda_tags" {
   description = "Tags to be applied to the Lambda function"
-  type        = "map"
+
   default = {
     # You can add more values below
     Name = "autospotting"

@@ -2,7 +2,7 @@
 Automatically convert your existing AutoScaling groups to significantly cheaper spot instances with minimal(often zero) configuration changes
 
 
-See [https://github.com/cristim/autospotting](https://github.com/cristim/autospotting) for details.
+See [https://github.com/autospotting/autospotting](https://github.com/autospotting/autospotting) for details.
 
 To access from terraform:
 
