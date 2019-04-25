@@ -43,7 +43,7 @@ resource "aws_lambda_function" "autospotting_from_s3" {
   role          = "${var.lambda_role_arn}"
   runtime       = "${var.lambda_runtime}"
   timeout       = "${var.lambda_timeout}"
-  handler       = "autospotting"
+  handler       = "AutoSpotting"
   memory_size   = "${var.lambda_memory_size}"
   tags          = "${merge(var.lambda_tags, module.label.tags)}"
 
