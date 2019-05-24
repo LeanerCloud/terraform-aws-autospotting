@@ -35,6 +35,8 @@ module "autospotting" {
 }
 ```
 
+New releases of this module only work with Terraform 0.12 or newer.
+
 ### Setting variables
 
 Available variables are defined in the [variables file](variables.tf). To change the defaults, just pass in the relevant variables:

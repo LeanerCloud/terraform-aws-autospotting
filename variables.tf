@@ -132,8 +132,7 @@ variable "lambda_run_frequency" {
 
 variable "lambda_tags" {
   description = "Tags to be applied to the Lambda function"
-
-  default = {
+  default     = {
     # You can add more values below
     Name = "autospotting"
   }
@@ -142,8 +141,32 @@ variable "lambda_tags" {
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"
-  type        = "map"
-  default     = {}
+  type        = object({
+    namespace           = string
+    environment         = string
+    stage               = string
+    name                = string
+    enabled             = bool
+    delimiter           = string
+    attributes          = list(string)
+    label_order         = list(string)
+    tags                = map(string)
+    additional_tag_map  = map(string)
+    regex_replace_chars = string
+  })
+  default     = {
+    namespace           = ""
+    environment         = ""
+    stage               = ""
+    name                = ""
+    enabled             = true
+    delimiter           = ""
+    attributes          = []
+    label_order         = []
+    tags                = {}
+    additional_tag_map  = {}
+    regex_replace_chars = ""
+  }
 }
 
 variable "label_namespace" {
@@ -167,14 +190,14 @@ variable "label_name" {
 }
 
 variable "label_attributes" {
-  type        = "list"
+  type        = list(string)
   description = "Additional attributes (e.g. 1)"
   default     = []
 }
 
 variable "label_tags" {
   description = "Additional tags (e.g. map('BusinessUnit','XYZ')"
-  type        = "map"
+  type        = map(string)
   default     = {}
 }
 
