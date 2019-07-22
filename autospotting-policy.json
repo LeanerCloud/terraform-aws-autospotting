@@ -21,7 +21,8 @@
         "iam:PassRole",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
-        "logs:PutLogEvents"
+        "logs:PutLogEvents",
+        "cloudformation:DescribeStacks"
       ],
       "Effect": "Allow",
       "Resource": "*"
