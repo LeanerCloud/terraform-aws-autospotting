@@ -97,7 +97,7 @@ EOF
 # Lambda configuration
 variable "lambda_zipname" {
   description = "Name of the archive, relative to the module"
-  default     = "package/autospotting.zip"
+  default     = ""
 }
 
 variable "lambda_s3_bucket" {
