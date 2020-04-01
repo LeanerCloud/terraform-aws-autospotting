@@ -26,12 +26,11 @@ module "autospotting" {
 }
 ```
 
-You can also use the module from this repository, but you'll also need to provide a reference to the autospotting binaries:
+You can also use the module from this repository:
 
 ```hcl
 module "autospotting" {
-  source         = "github.com/autospotting/terraform-aws-autospotting?ref=master"
-  lambda_zipname = "lambda.zip"
+  source = "github.com/autospotting/terraform-aws-autospotting?ref=master"
 }
 ```
 
