@@ -21,8 +21,8 @@ You can use the module with prebuilt binaries from the Terraform Registry:
 
 ```hcl
 module "autospotting" {
-  source  = "cristim/autospotting/aws"
-  version = "0.0.9" # this version is subject to change
+  source  = "AutoSpotting/autospotting/aws"
+  version = "0.1.2" # this version is subject to change
 }
 ```
 
