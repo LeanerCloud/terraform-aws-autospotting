@@ -102,12 +102,12 @@ variable "lambda_zipname" {
 
 variable "lambda_s3_bucket" {
   description = "Bucket which the archive is stored in"
-  default     = ""
+  default     = "cloudprowess"
 }
 
 variable "lambda_s3_key" {
   description = "Key in S3 under which the archive is stored"
-  default     = ""
+  default     = "nightly/lambda.zip"
 }
 
 variable "lambda_runtime" {

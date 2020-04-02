@@ -3,16 +3,12 @@ module "label" {
   context = var.label_context
 }
 
-locals {
-  lambda_zipname = var.lambda_zipname == "" ? "${path.module}/package/autospotting.zip" : var.lambda_zipname  
-}
-
 resource "aws_lambda_function" "autospotting" {
-  count = var.lambda_s3_bucket == "" ? 1 : 0
+  count = var.lambda_zipname != "" ? 0 : 1
 
   function_name    = module.label.id
-  filename         = local.lambda_zipname
-  source_code_hash = filebase64sha256(local.lambda_zipname)
+  filename         = var.lambda_zipname
+  source_code_hash = filebase64sha256(var.lambda_zipname)
   role             = var.lambda_role_arn
   runtime          = var.lambda_runtime
   timeout          = var.lambda_timeout
@@ -39,7 +35,7 @@ resource "aws_lambda_function" "autospotting" {
 }
 
 resource "aws_lambda_function" "autospotting_from_s3" {
-  count = var.lambda_s3_bucket == "" ? 0 : 1
+  count = var.lambda_zipname != "" ? 0 : 1
 
   function_name = module.label.id
   s3_bucket     = var.lambda_s3_bucket
