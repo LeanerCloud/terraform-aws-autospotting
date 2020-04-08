@@ -36,6 +36,7 @@ module "aws_lambda_function" {
   autospotting_regions_enabled              = var.autospotting_regions_enabled
   autospotting_tag_filters                  = var.autospotting_tag_filters
   autospotting_tag_filtering_mode           = var.autospotting_tag_filtering_mode
+  autospotting_license                      = var.autospotting_license
 }
 
 resource "aws_iam_role" "autospotting_role" {

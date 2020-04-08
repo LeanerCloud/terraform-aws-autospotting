@@ -94,6 +94,11 @@ EOF
   default = "opt-in"
 }
 
+variable "autospotting_license" {
+  description = "Autospotting License code"
+  default     = "evaluation"
+}
+
 # Lambda configuration
 variable "lambda_zipname" {
   description = "Name of the archive, relative to the module"
@@ -141,7 +146,7 @@ variable "lambda_tags" {
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"
-  type        = object({
+  type = object({
     namespace           = string
     environment         = string
     stage               = string
@@ -154,7 +159,7 @@ variable "label_context" {
     additional_tag_map  = map(string)
     regex_replace_chars = string
   })
-  default     = {
+  default = {
     namespace           = ""
     environment         = ""
     stage               = ""

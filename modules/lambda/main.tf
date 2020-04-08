@@ -30,6 +30,7 @@ resource "aws_lambda_function" "autospotting" {
       REGIONS                      = var.autospotting_regions_enabled
       TAG_FILTERS                  = var.autospotting_tag_filters
       TAG_FILTERING_MODE           = var.autospotting_tag_filtering_mode
+      LICENSE                      = var.autospotting_license
     }
   }
 }
@@ -61,6 +62,7 @@ resource "aws_lambda_function" "autospotting_from_s3" {
       REGIONS                      = var.autospotting_regions_enabled
       TAG_FILTERS                  = var.autospotting_tag_filters
       TAG_FILTERING_MODE           = var.autospotting_tag_filtering_mode
+      LICENSE                      = var.autospotting_license
     }
   }
 }
