@@ -95,7 +95,12 @@ EOF
 }
 
 variable "autospotting_license" {
-  description = "Autospotting License code"
+  description = <<EOF
+Autospotting License code. Allowed options are:
+'evaluation', 'I_am_supporting_it_on_Patreon',
+'I_contributed_to_development_within_the_last_year',
+'I_built_it_from_source_code'
+EOF
   default     = "evaluation"
 }
 
