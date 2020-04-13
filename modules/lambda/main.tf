@@ -4,7 +4,7 @@ module "label" {
 }
 
 resource "aws_lambda_function" "autospotting" {
-  count = var.lambda_zipname != "" ? 0 : 1
+  count = var.lambda_zipname == "" ? 0 : 1
 
   function_name    = module.label.id
   filename         = var.lambda_zipname
