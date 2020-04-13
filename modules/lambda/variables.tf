@@ -1,13 +1,13 @@
 variable "lambda_zipname" {
-  default = ""
+  default = null
 }
 
 variable "lambda_s3_bucket" {
-  default = ""
+  default = null
 }
 
 variable "lambda_s3_key" {
-  default = ""
+  default = null
 }
 
 variable "lambda_role_arn" {}
