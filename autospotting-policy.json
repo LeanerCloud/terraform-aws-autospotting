@@ -5,6 +5,7 @@
       "Action": [
         "autoscaling:AttachInstances",
         "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
         "autoscaling:DescribeLaunchConfigurations",
         "autoscaling:DescribeTags",
         "autoscaling:DetachInstances",
