@@ -22,7 +22,9 @@
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
         "logs:PutLogEvents",
-        "cloudformation:DescribeStacks"
+        "cloudformation:DescribeStacks",
+        "ec2:DescribeLaunchTemplates",
+        "ec2:DescribeLaunchTemplateVersions"
       ],
       "Effect": "Allow",
       "Resource": "*"
