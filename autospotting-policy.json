@@ -17,6 +17,7 @@
         "ec2:DeleteTags",
         "ec2:DescribeInstanceAttribute",
         "ec2:DescribeInstances",
+        "ec2:DescribeLaunchTemplates",
         "ec2:DescribeLaunchTemplateVersions",
         "ec2:DescribeRegions",
         "ec2:DescribeSpotPriceHistory",
