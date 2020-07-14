@@ -101,4 +101,5 @@ resource "aws_iam_policy" "beanstalk_policy" {
 module "regional" {
   source                  = "./modules/regional"
   autospotting_lambda_arn = module.aws_lambda_function.arn
+  label_context           = module.label.context
 }
