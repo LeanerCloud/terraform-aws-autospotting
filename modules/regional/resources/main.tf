@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "aws_cloudwatch_event_rule" "autospotting_regional_event_capture" {
-  name        = "${label_id}-autospotting_regional_event_capture"
+  name        = "${var.label_id}-autospotting_regional_event_capture"
   description = "Capture relevant events that are only fired within AWS regions and need to be forwarded to the central Lambda function"
 
   event_pattern = <<PATTERN
@@ -33,7 +33,7 @@ data "archive_file" "lambda_zip" {
 
 resource "aws_lambda_function" "regional_lambda" {
   filename      = data.archive_file.lambda_zip.output_path
-  function_name = "${label_id}-autospotting_regional_lambda"
+  function_name = "${var.label_id}-autospotting_regional_lambda"
   role          = var.lambda_iam_role.arn
   handler       = "handler.handler"
 
@@ -50,7 +50,7 @@ resource "aws_lambda_function" "regional_lambda" {
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
-  statement_id  = "${label_id}-AllowExecutionFromCloudWatch"
+  statement_id  = "${var.label_id}-AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.regional_lambda.function_name
   principal     = "events.amazonaws.com"
