@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "aws_cloudwatch_event_rule" "autospotting_regional_event_capture" {
-  name        = "${var.label_id}-autospotting_regional_event_capture"
+  name        = "${var.label_id}-regional_events"
   description = "Capture relevant events that are only fired within AWS regions and need to be forwarded to the central Lambda function"
 
   event_pattern = <<PATTERN
@@ -33,7 +33,7 @@ data "archive_file" "lambda_zip" {
 
 resource "aws_lambda_function" "regional_lambda" {
   filename      = data.archive_file.lambda_zip.output_path
-  function_name = "${var.label_id}-autospotting_regional_lambda"
+  function_name = "${var.label_id}-regional_lambda"
   role          = var.lambda_iam_role.arn
   handler       = "handler.handler"
 
