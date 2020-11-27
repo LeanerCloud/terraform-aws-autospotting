@@ -9,7 +9,7 @@ Example: 't2.*,m4.large'
 Using the 'current' magic value will only allow the same type as the
 on-demand instances set in the group's launch configuration.
 EOF
-  default = ""
+  default     = ""
 }
 
 variable "autospotting_disallowed_instance_types" {
@@ -19,7 +19,7 @@ in case you want to exclude specific types (also support globs).
 
 Example: 't2.*,m4.large'
 EOF
-  default = ""
+  default     = ""
 }
 
 variable "autospotting_instance_termination_method" {
@@ -27,7 +27,7 @@ variable "autospotting_instance_termination_method" {
 Instance termination method. Must be one of 'autoscaling' (default) or
 'detach' (compatibility mode, not recommended).
 EOF
-  default = "autoscaling"
+  default     = "autoscaling"
 }
 
 variable "autospotting_min_on_demand_number" {
@@ -54,7 +54,7 @@ Valid choices
 - Linux/UNIX | SUSE Linux | Windows
 - Linux/UNIX (Amazon VPC) | SUSE Linux (Amazon VPC) | Windows (Amazon VPC)
 EOF
-  default = "Linux/UNIX (Amazon VPC)"
+  default     = "Linux/UNIX (Amazon VPC)"
 }
 
 variable "autospotting_spot_price_buffer_percentage" {
@@ -69,7 +69,7 @@ variable "autospotting_bidding_policy" {
 
 variable "autospotting_regions_enabled" {
   description = "Regions in which autospotting is enabled"
-  default     = ""
+  default     = []
 }
 
 variable "autospotting_tag_filters" {
@@ -82,7 +82,7 @@ mode.
 You can set this to many tags, for example:
 spot-enabled=true,Environment=dev,Team=vision
 EOF
-  default = ""
+  default     = ""
 }
 
 variable "autospotting_tag_filtering_mode" {
@@ -91,7 +91,7 @@ Controls the tag-based ASG filter. Supported values: 'opt-in' or 'opt-out'.
 Defaults to opt-in mode, in which it only acts against the tagged groups. In
 opt-out mode it works against all groups except for the tagged ones.
 EOF
-  default = "opt-in"
+  default     = "opt-in"
 }
 
 variable "autospotting_license" {
@@ -142,7 +142,7 @@ variable "lambda_run_frequency" {
 
 variable "lambda_tags" {
   description = "Tags to be applied to the Lambda function"
-  default     = {
+  default = {
     # You can add more values below
     Name = "autospotting"
   }
