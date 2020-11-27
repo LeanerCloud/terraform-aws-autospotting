@@ -2,7 +2,8 @@
 # To update it just execute "terraform apply" again after changing the "regions" parameter.
 
 module "regional_resources_af-south-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -12,7 +13,8 @@ module "regional_resources_af-south-1" {
   }
 }
 module "regional_resources_ap-east-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -22,7 +24,8 @@ module "regional_resources_ap-east-1" {
   }
 }
 module "regional_resources_ap-northeast-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -32,7 +35,8 @@ module "regional_resources_ap-northeast-1" {
   }
 }
 module "regional_resources_ap-northeast-2" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -42,7 +46,8 @@ module "regional_resources_ap-northeast-2" {
   }
 }
 module "regional_resources_ap-south-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -52,7 +57,8 @@ module "regional_resources_ap-south-1" {
   }
 }
 module "regional_resources_ap-southeast-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -62,7 +68,8 @@ module "regional_resources_ap-southeast-1" {
   }
 }
 module "regional_resources_ap-southeast-2" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -72,7 +79,8 @@ module "regional_resources_ap-southeast-2" {
   }
 }
 module "regional_resources_ca-central-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -82,7 +90,8 @@ module "regional_resources_ca-central-1" {
   }
 }
 module "regional_resources_eu-central-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -92,7 +101,8 @@ module "regional_resources_eu-central-1" {
   }
 }
 module "regional_resources_eu-north-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -102,7 +112,8 @@ module "regional_resources_eu-north-1" {
   }
 }
 module "regional_resources_eu-south-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -112,7 +123,8 @@ module "regional_resources_eu-south-1" {
   }
 }
 module "regional_resources_eu-west-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -122,7 +134,8 @@ module "regional_resources_eu-west-1" {
   }
 }
 module "regional_resources_eu-west-2" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -132,7 +145,8 @@ module "regional_resources_eu-west-2" {
   }
 }
 module "regional_resources_eu-west-3" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -142,7 +156,8 @@ module "regional_resources_eu-west-3" {
   }
 }
 module "regional_resources_me-south-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -152,7 +167,8 @@ module "regional_resources_me-south-1" {
   }
 }
 module "regional_resources_sa-east-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -162,7 +178,8 @@ module "regional_resources_sa-east-1" {
   }
 }
 module "regional_resources_us-east-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -172,7 +189,8 @@ module "regional_resources_us-east-1" {
   }
 }
 module "regional_resources_us-east-2" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -182,7 +200,8 @@ module "regional_resources_us-east-2" {
   }
 }
 module "regional_resources_us-west-1" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
@@ -192,7 +211,8 @@ module "regional_resources_us-west-1" {
   }
 }
 module "regional_resources_us-west-2" {
-  source = "./resources"
+  source        = "./resources"
+  label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
   lambda_iam_role         = aws_iam_role.iam_for_lambda
