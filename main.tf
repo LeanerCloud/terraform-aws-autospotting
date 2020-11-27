@@ -1,13 +1,22 @@
 module "label" {
-  source      = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.18.0"
-  context     = var.label_context
-  namespace   = var.label_namespace
-  environment = var.label_environment
-  stage       = var.label_stage
-  name        = var.label_name
-  attributes  = var.label_attributes
-  tags        = var.label_tags
-  delimiter   = var.label_delimiter
+  source  = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.21.0"
+  context = module.this
+}
+
+data "aws_regions" "current" {
+  all_regions = true
+}
+
+locals {
+  all_regions         = data.aws_regions.current.names
+  unsupported_regions = ["ap-northeast-3"] # These regions currently throw an error when attempting to use them. This is also set in modules/regional/generate_regional_code.tf
+
+  all_usable_regions = setsubtract(local.all_regions, local.unsupported_regions)
+  regions            = var.autospotting_regions_enabled == [] ? local.all_usable_regions : var.autospotting_regions_enabled
+}
+
+output "regions" {
+  value = local.regions
 }
 
 module "aws_lambda_function" {
@@ -39,8 +48,16 @@ module "aws_lambda_function" {
   autospotting_license                      = var.autospotting_license
 }
 
+# Regional resources that trigger the main Lambda function
+module "regional" {
+  source                  = "./modules/regional"
+  autospotting_lambda_arn = module.aws_lambda_function.arn
+  label_context           = module.label.context
+  regions                 = local.regions
+}
+
 resource "aws_iam_role" "autospotting_role" {
-  name                  = module.label.id
+  name                  = "autospotting-role-${module.label.id}"
   path                  = "/lambda/"
   assume_role_policy    = file("${path.module}/lambda-policy.json")
   force_detach_policies = true
@@ -96,7 +113,6 @@ resource "aws_iam_policy" "beanstalk_policy" {
   policy = data.aws_iam_policy_document.beanstalk.json
 }
 
-# Regional resources that trigger the main Lambda function
 
 module "regional" {
   source                  = "./modules/regional"

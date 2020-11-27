@@ -37,7 +37,7 @@ variable "lambda_tags" {
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"
-  type        = object({
+  type = object({
     namespace           = string
     environment         = string
     stage               = string
@@ -49,8 +49,9 @@ variable "label_context" {
     tags                = map(string)
     additional_tag_map  = map(string)
     regex_replace_chars = string
+    id_length_limit     = number
   })
-  default     = {
+  default = {
     namespace           = ""
     environment         = ""
     stage               = ""
@@ -62,6 +63,7 @@ variable "label_context" {
     tags                = {}
     additional_tag_map  = {}
     regex_replace_chars = ""
+    id_length_limit     = 0
   }
 }
 

@@ -1,11 +1,10 @@
-
-provider "aws" {
-  version = "~> 2.0"
-  region  = var.region
+module "label" {
+  source  = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.21.0"
+  context = var.label_context
 }
 
 resource "aws_cloudwatch_event_rule" "autospotting_regional_event_capture" {
-  name        = "${var.label_id}-regional_events"
+  name        = "autospotting_regional_event_capture_${module.label.id}"
   description = "Capture relevant events that are only fired within AWS regions and need to be forwarded to the central Lambda function"
 
   event_pattern = <<PATTERN
@@ -33,7 +32,7 @@ data "archive_file" "lambda_zip" {
 
 resource "aws_lambda_function" "regional_lambda" {
   filename      = data.archive_file.lambda_zip.output_path
-  function_name = "${var.label_id}-regional_lambda"
+  function_name = "autospotting_regional_lambda_${module.label.id}"
   role          = var.lambda_iam_role.arn
   handler       = "handler.handler"
 

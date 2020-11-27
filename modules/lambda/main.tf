@@ -1,10 +1,10 @@
 module "label" {
-  source  = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.18.0"
+  source  = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.21.0"
   context = var.label_context
 }
 
 resource "aws_lambda_function" "autospotting" {
-  function_name    = module.label.id
+  function_name    = "autospotting-lambda-${module.label.id}"
   filename         = var.lambda_zipname
   source_code_hash = var.lambda_zipname == null ? null : filebase64sha256(var.lambda_zipname)
   s3_bucket        = var.lambda_zipname == null ? var.lambda_s3_bucket : null
@@ -27,7 +27,7 @@ resource "aws_lambda_function" "autospotting" {
       SPOT_PRICE_BUFFER_PERCENTAGE = var.autospotting_spot_price_buffer_percentage
       SPOT_PRODUCT_DESCRIPTION     = var.autospotting_spot_product_description
       BIDDING_POLICY               = var.autospotting_bidding_policy
-      REGIONS                      = var.autospotting_regions_enabled
+      REGIONS                      = join(",", var.autospotting_regions_enabled)
       TAG_FILTERS                  = var.autospotting_tag_filters
       TAG_FILTERING_MODE           = var.autospotting_tag_filtering_mode
       LICENSE                      = var.autospotting_license
