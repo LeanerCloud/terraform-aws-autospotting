@@ -4,7 +4,7 @@ module "label" {
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "${module.label.id}-iam_for_lambda"
+  name = "iam_role_for_regional_lambda-${module.label.id}"
 
   assume_role_policy = <<EOF
 {

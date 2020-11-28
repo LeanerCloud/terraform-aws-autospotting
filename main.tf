@@ -105,10 +105,3 @@ resource "aws_iam_policy" "beanstalk_policy" {
   name   = "elastic_beanstalk_iam_policy_for_${module.label.id}"
   policy = data.aws_iam_policy_document.beanstalk.json
 }
-
-
-module "regional" {
-  source                  = "./modules/regional"
-  autospotting_lambda_arn = module.aws_lambda_function.arn
-  label_context           = module.label.context
-}
