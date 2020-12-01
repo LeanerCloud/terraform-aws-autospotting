@@ -7,7 +7,7 @@ module "regional_resources_${region}" {
   label_context = var.label_context
 
   autospotting_lambda_arn = var.autospotting_lambda_arn
-  lambda_iam_role         = aws_iam_role.iam_for_lambda
+  lambda_iam_role         = aws_iam_role.regional_role
 
   providers = {
     aws = aws.${region}
