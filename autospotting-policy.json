@@ -6,6 +6,7 @@
         "autoscaling:AttachInstances",
         "autoscaling:DescribeAutoScalingGroups",
         "autoscaling:DescribeLaunchConfigurations",
+        "autoscaling:DescribeAutoScalingInstances",
         "autoscaling:DescribeTags",
         "autoscaling:DetachInstances",
         "autoscaling:TerminateInstanceInAutoScalingGroup",
