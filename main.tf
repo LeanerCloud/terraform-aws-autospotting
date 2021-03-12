@@ -24,6 +24,7 @@ module "aws_lambda_function" {
   lambda_memory_size = var.lambda_memory_size
   lambda_tags        = var.lambda_tags
 
+  autospotting_enabled                      = var.autospotting_enabled
   autospotting_allowed_instance_types       = var.autospotting_allowed_instance_types
   autospotting_disallowed_instance_types    = var.autospotting_disallowed_instance_types
   autospotting_instance_termination_method  = var.autospotting_instance_termination_method
@@ -40,6 +41,7 @@ module "aws_lambda_function" {
 }
 
 resource "aws_iam_role" "autospotting_role" {
+  count                 = var.autospotting_enabled ? 1 : 0
   name                  = module.label.id
   path                  = "/lambda/"
   assume_role_policy    = file("${path.module}/lambda-policy.json")
@@ -47,12 +49,14 @@ resource "aws_iam_role" "autospotting_role" {
 }
 
 resource "aws_iam_role_policy" "autospotting_policy" {
+  count  = var.autospotting_enabled ? 1 : 0
   name   = "policy_for_${module.label.id}"
   role   = aws_iam_role.autospotting_role.id
   policy = file("${path.module}/autospotting-policy.json")
 }
 
 resource "aws_lambda_permission" "cloudwatch_events_permission" {
+  count         = var.autospotting_enabled ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = module.aws_lambda_function.function_name
@@ -61,17 +65,23 @@ resource "aws_lambda_permission" "cloudwatch_events_permission" {
 }
 
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
+  count     = var.autospotting_enabled ? 1 : 0
   rule      = aws_cloudwatch_event_rule.cloudwatch_frequency.name
   target_id = "run_autospotting"
   arn       = module.aws_lambda_function.arn
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
+  count               = var.autospotting_enabled ? 1 : 0
   name                = "${module.label.id}_frequency"
   schedule_expression = var.lambda_run_frequency
 }
 
 resource "aws_cloudwatch_log_group" "log_group_autospotting" {
+  /*
+  Don't add count here, just in case we disable autospotting on an environment,
+  but want to check out the logs later...
+  */
   name              = "/aws/lambda/${module.label.id}"
   retention_in_days = 7
 }

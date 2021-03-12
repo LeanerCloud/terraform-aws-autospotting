@@ -1,4 +1,12 @@
 # Autospotting configuration
+variable "autospotting_enabled" {
+  description = <<EOF
+Enables module.
+EOF
+  type = bool
+  default = false
+}
+
 variable "autospotting_allowed_instance_types" {
   description = <<EOF
 Comma separated list of allowed instance types for spot requests,

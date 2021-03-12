@@ -1,3 +1,8 @@
+variable "autospotting_enabled" {
+  type = bool
+  default = false
+}
+
 variable "lambda_zipname" {
   default = null
 }
