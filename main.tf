@@ -18,7 +18,7 @@ module "aws_lambda_function" {
   lambda_zipname     = var.lambda_zipname
   lambda_s3_bucket   = var.lambda_s3_bucket
   lambda_s3_key      = var.lambda_s3_key
-  lambda_role_arn    = aws_iam_role.autospotting_role.arn
+  lambda_role_arn    = aws_iam_role.autospotting_role[*].arn
   lambda_runtime     = var.lambda_runtime
   lambda_timeout     = var.lambda_timeout
   lambda_memory_size = var.lambda_memory_size
@@ -51,7 +51,7 @@ resource "aws_iam_role" "autospotting_role" {
 resource "aws_iam_role_policy" "autospotting_policy" {
   count  = var.autospotting_enabled ? 1 : 0
   name   = "policy_for_${module.label.id}"
-  role   = aws_iam_role.autospotting_role.id
+  role   = aws_iam_role.autospotting_role[*].id
   policy = file("${path.module}/autospotting-policy.json")
 }
 
@@ -59,16 +59,16 @@ resource "aws_lambda_permission" "cloudwatch_events_permission" {
   count         = var.autospotting_enabled ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = module.aws_lambda_function.function_name
+  function_name = module.aws_lambda_function[*].function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency.arn
+  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency[*].arn
 }
 
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
   count     = var.autospotting_enabled ? 1 : 0
-  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency.name
+  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency[*].name
   target_id = "run_autospotting"
-  arn       = module.aws_lambda_function.arn
+  arn       = module.aws_lambda_function[*].arn
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
