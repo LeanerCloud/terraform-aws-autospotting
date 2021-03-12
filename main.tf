@@ -10,6 +10,39 @@ module "label" {
   delimiter   = var.label_delimiter
 }
 
+resource "aws_lambda_function" "autospotting" {
+  count            = var.autospotting_enabled ? 1 : 0
+  function_name    = module.label.id
+  filename         = var.lambda_zipname
+  source_code_hash = var.lambda_zipname == null ? null : filebase64sha256(var.lambda_zipname)
+  s3_bucket        = var.lambda_zipname == null ? var.lambda_s3_bucket : null
+  s3_key           = var.lambda_zipname == null ? var.lambda_s3_key : null
+  role             = join("", aws_iam_role.autospotting_role[*].arn)
+  runtime          = var.lambda_runtime
+  timeout          = var.lambda_timeout
+  handler          = "AutoSpotting"
+  memory_size      = var.lambda_memory_size
+  tags             = merge(var.lambda_tags, module.label.tags)
+
+  environment {
+    variables = {
+      ALLOWED_INSTANCE_TYPES       = var.autospotting_allowed_instance_types
+      DISALLOWED_INSTANCE_TYPES    = var.autospotting_disallowed_instance_types
+      INSTANCE_TERMINATION_METHOD  = var.autospotting_instance_termination_method
+      MIN_ON_DEMAND_NUMBER         = var.autospotting_min_on_demand_number
+      MIN_ON_DEMAND_PERCENTAGE     = var.autospotting_min_on_demand_percentage
+      ON_DEMAND_PRICE_MULTIPLIER   = var.autospotting_on_demand_price_multiplier
+      SPOT_PRICE_BUFFER_PERCENTAGE = var.autospotting_spot_price_buffer_percentage
+      SPOT_PRODUCT_DESCRIPTION     = var.autospotting_spot_product_description
+      BIDDING_POLICY               = var.autospotting_bidding_policy
+      REGIONS                      = var.autospotting_regions_enabled
+      TAG_FILTERS                  = var.autospotting_tag_filters
+      TAG_FILTERING_MODE           = var.autospotting_tag_filtering_mode
+      LICENSE                      = var.autospotting_license
+    }
+  }
+}
+
 module "aws_lambda_function" {
   source = "./modules/lambda"
 
@@ -18,7 +51,7 @@ module "aws_lambda_function" {
   lambda_zipname     = var.lambda_zipname
   lambda_s3_bucket   = var.lambda_s3_bucket
   lambda_s3_key      = var.lambda_s3_key
-  lambda_role_arn    = aws_iam_role.autospotting_role[*].arn
+  lambda_role_arn    = join("", aws_iam_role.autospotting_role[*].arn)
   lambda_runtime     = var.lambda_runtime
   lambda_timeout     = var.lambda_timeout
   lambda_memory_size = var.lambda_memory_size
@@ -51,7 +84,7 @@ resource "aws_iam_role" "autospotting_role" {
 resource "aws_iam_role_policy" "autospotting_policy" {
   count  = var.autospotting_enabled ? 1 : 0
   name   = "policy_for_${module.label.id}"
-  role   = aws_iam_role.autospotting_role[*].id
+  role   = join("", aws_iam_role.autospotting_role[*].id)
   policy = file("${path.module}/autospotting-policy.json")
 }
 
@@ -59,16 +92,16 @@ resource "aws_lambda_permission" "cloudwatch_events_permission" {
   count         = var.autospotting_enabled ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = module.aws_lambda_function.function_name
+  function_name = join("", aws_lambda_function.autospotting[*].function_name)
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency[*].arn
+  source_arn    = join("", aws_cloudwatch_event_rule.cloudwatch_frequency[*].arn)
 }
 
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
   count     = var.autospotting_enabled ? 1 : 0
-  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency[*].name
+  rule      = join("", aws_cloudwatch_event_rule.cloudwatch_frequency[*].name)
   target_id = "run_autospotting"
-  arn       = module.aws_lambda_function.arn
+  arn       = join("", aws_lambda_function.autospotting[*].arn)
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
