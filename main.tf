@@ -4,14 +4,11 @@ module "label" {
   enabled = true
 }
 
-data "aws_regions" "current" {
-  all_regions = true
-}
+data "aws_regions" "current" {}
 
 locals {
-  all_regions        = data.aws_regions.current.names
-  all_usable_regions = setsubtract(local.all_regions, var.unsupported_regions)
-  regions            = var.autospotting_regions_enabled == [] ? local.all_usable_regions : var.autospotting_regions_enabled
+  all_regions = data.aws_regions.current.names
+  regions     = var.autospotting_regions_enabled == [] ? local.all_regions : var.autospotting_regions_enabled
 }
 
 output "regions" {
@@ -69,7 +66,6 @@ module "regional" {
   autospotting_lambda_arn = module.aws_lambda_function.arn
   label_context           = module.label.context
   regions                 = local.regions
-  unsupported_regions     = var.unsupported_regions
 }
 
 resource "aws_lambda_permission" "cloudwatch_events_permission" {

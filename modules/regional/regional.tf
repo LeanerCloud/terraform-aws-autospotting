@@ -2,6 +2,8 @@
 # To update it just execute "terraform apply" again after changing the "regions" parameter.
 
 module "regional_resources_ap-northeast-1" {
+ count  = contains(var.regions,"ap-northeast-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -13,6 +15,8 @@ module "regional_resources_ap-northeast-1" {
   }
 }
 module "regional_resources_ap-northeast-2" {
+ count  = contains(var.regions,"ap-northeast-2") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -23,7 +27,22 @@ module "regional_resources_ap-northeast-2" {
     aws = aws.ap-northeast-2
   }
 }
+module "regional_resources_ap-northeast-3" {
+ count  = contains(var.regions,"ap-northeast-3") ? 1 : 0
+
+  source        = "./resources"
+  label_context = var.label_context
+
+  autospotting_lambda_arn = var.autospotting_lambda_arn
+  lambda_iam_role         = aws_iam_role.regional_role
+
+  providers = {
+    aws = aws.ap-northeast-3
+  }
+}
 module "regional_resources_ap-south-1" {
+ count  = contains(var.regions,"ap-south-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -35,6 +54,8 @@ module "regional_resources_ap-south-1" {
   }
 }
 module "regional_resources_ap-southeast-1" {
+ count  = contains(var.regions,"ap-southeast-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -46,6 +67,8 @@ module "regional_resources_ap-southeast-1" {
   }
 }
 module "regional_resources_ap-southeast-2" {
+ count  = contains(var.regions,"ap-southeast-2") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -57,6 +80,8 @@ module "regional_resources_ap-southeast-2" {
   }
 }
 module "regional_resources_ca-central-1" {
+ count  = contains(var.regions,"ca-central-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -68,6 +93,8 @@ module "regional_resources_ca-central-1" {
   }
 }
 module "regional_resources_eu-central-1" {
+ count  = contains(var.regions,"eu-central-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -79,6 +106,8 @@ module "regional_resources_eu-central-1" {
   }
 }
 module "regional_resources_eu-north-1" {
+ count  = contains(var.regions,"eu-north-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -90,6 +119,8 @@ module "regional_resources_eu-north-1" {
   }
 }
 module "regional_resources_eu-west-1" {
+ count  = contains(var.regions,"eu-west-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -101,6 +132,8 @@ module "regional_resources_eu-west-1" {
   }
 }
 module "regional_resources_eu-west-2" {
+ count  = contains(var.regions,"eu-west-2") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -112,6 +145,8 @@ module "regional_resources_eu-west-2" {
   }
 }
 module "regional_resources_eu-west-3" {
+ count  = contains(var.regions,"eu-west-3") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -123,6 +158,8 @@ module "regional_resources_eu-west-3" {
   }
 }
 module "regional_resources_sa-east-1" {
+ count  = contains(var.regions,"sa-east-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -134,6 +171,8 @@ module "regional_resources_sa-east-1" {
   }
 }
 module "regional_resources_us-east-1" {
+ count  = contains(var.regions,"us-east-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -145,6 +184,8 @@ module "regional_resources_us-east-1" {
   }
 }
 module "regional_resources_us-east-2" {
+ count  = contains(var.regions,"us-east-2") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -156,6 +197,8 @@ module "regional_resources_us-east-2" {
   }
 }
 module "regional_resources_us-west-1" {
+ count  = contains(var.regions,"us-west-1") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
@@ -167,6 +210,8 @@ module "regional_resources_us-west-1" {
   }
 }
 module "regional_resources_us-west-2" {
+ count  = contains(var.regions,"us-west-2") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 

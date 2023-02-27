@@ -1,8 +1,9 @@
 
 variable "autospotting_lambda_arn" {}
-variable "regions" {}
-variable "unsupported_regions" {}
-
+variable "regions" {
+  description = "Regions to handle"
+  type        = list(string)
+}
 
 # Label configuration
 variable "label_context" {

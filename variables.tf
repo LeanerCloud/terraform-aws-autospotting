@@ -391,32 +391,6 @@ variable "lambda_tags" {
   }
 }
 
-variable "unsupported_regions" {
-  description = <<EOF
-  List of relatively recently launched/announced regions that are currently
-  not supported by AutoSpotting.
-  This list is expected to evolve over time as new regious are announced or
-  made available to AWS customers.
-  In case you notice errors mentioning providers.tf, such as reported in
-  https://github.com/AutoSpotting/terraform-aws-autospotting/issues/38
-  it's usually a sign that this list needs to be updated. The line in
-  providers.tf which may be mentioned in the error message is a good way
-  to see which region needs to be added. On another hand if you're trying
-  to run AutoSpotting in a recently launched region mentioned below, you
-  can always override this variable to remove that region. If the region
-  actually works fine, please also send a pull request deleting it from
-  this list to add support for this new region.
-  EOF
-  type        = list(string)
-  default = [
-    "af-south-1",
-    "ap-east-1",
-    "ap-northeast-3",
-    "eu-south-1",
-    "me-south-1",
-  ]
-}
-
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"

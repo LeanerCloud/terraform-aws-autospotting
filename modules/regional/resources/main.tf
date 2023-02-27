@@ -151,6 +151,6 @@ resource "aws_cloudwatch_log_group" "log_group" {
 
   # retain log group on stack update and delete
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }

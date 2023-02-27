@@ -3,6 +3,8 @@
 
 %{ for region in regions ~}
 module "regional_resources_${region}" {
+ count  = contains(var.regions,"${region}") ? 1 : 0
+
   source        = "./resources"
   label_context = var.label_context
 
