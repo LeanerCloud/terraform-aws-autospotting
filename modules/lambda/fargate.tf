@@ -12,7 +12,7 @@ data "aws_region" "current" {}
 module "vpc" {
   count   = var.use_existing_subnets ? 0 : 1
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 2.21"
+  version = ">= 5.21.0, < 6.0.0"
 
   name = "autospotting-${module.label.id}"
 
