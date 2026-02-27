@@ -1,8 +1,6 @@
 # ──── Scheduled Events ────
 
-# Cost collection: hourly (conditional on enable_cost_dashboard)
-# CFN invokes Lambda directly; we route via SQS for consistency with other
-# scheduled events. Go code handles both SQS-wrapped and direct invocations.
+# Cost collection: hourly, targeting Lambda directly (matching CFN)
 resource "aws_cloudwatch_event_rule" "cost_collection" {
   count               = var.enable_cost_dashboard ? 1 : 0
   name                = "${module.label.id}-cost-collection"
@@ -16,15 +14,19 @@ resource "aws_cloudwatch_event_target" "cost_collection" {
   count     = var.enable_cost_dashboard ? 1 : 0
   rule      = aws_cloudwatch_event_rule.cost_collection[0].name
   target_id = "cost-collection"
-  arn       = aws_sqs_queue.autospotting_fifo_queue.arn
+  arn       = aws_lambda_function.autospotting.arn
 
   input = jsonencode({
     action = "collect_costs"
   })
+}
 
-  sqs_target {
-    message_group_id = "autospotting_cost_collection"
-  }
+resource "aws_lambda_permission" "cost_collection" {
+  count         = var.enable_cost_dashboard ? 1 : 0
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.autospotting.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.cost_collection[0].arn
 }
 
 # RISP coverage collection: weekly Sunday 6AM UTC (conditional on enable_risp_coverage)
@@ -124,7 +126,6 @@ resource "aws_sqs_queue_policy" "scheduled_events" {
         Condition = {
           ArnEquals = {
             "aws:SourceArn" = compact([
-              var.enable_cost_dashboard ? aws_cloudwatch_event_rule.cost_collection[0].arn : "",
               var.enable_risp_coverage ? aws_cloudwatch_event_rule.risp_collection[0].arn : "",
               var.enable_cost_dashboard ? aws_cloudwatch_event_rule.invoice_generation[0].arn : "",
               var.saas_mode ? aws_cloudwatch_event_rule.trial_expiration[0].arn : "",
