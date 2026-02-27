@@ -400,6 +400,33 @@ resource "aws_sqs_queue" "autospotting_dlq" {
   sqs_managed_sse_enabled   = true
 }
 
+# CustomerAccountRegistration — listen for CFN stack events from customer accounts
+resource "aws_cloudwatch_event_rule" "customer_account_registration" {
+  count       = var.enable_multi_account ? 1 : 0
+  name        = "${module.label.id}-CustomerAccountRegistration"
+  description = "Listens for CloudFormation stack completion events from customer accounts to trigger account registration"
+
+  event_pattern = jsonencode({
+    "detail-type" = ["CloudFormation Stack Status Change"]
+    source        = ["aws.cloudformation"]
+    detail = {
+      "status-details" = {
+        status = ["CREATE_COMPLETE", "UPDATE_COMPLETE"]
+      }
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "customer_account_registration" {
+  count = var.enable_multi_account ? 1 : 0
+  rule  = aws_cloudwatch_event_rule.customer_account_registration[0].name
+  arn   = aws_sqs_queue.autospotting_fifo_queue.arn
+
+  sqs_target {
+    message_group_id = "AutoSpotting"
+  }
+}
+
 resource "aws_lambda_event_source_mapping" "autospotting_lambda_event_source_mapping_new_role" {
   count            = var.use_existing_iam_role ? 0 : 1
   event_source_arn = aws_sqs_queue.autospotting_fifo_queue.arn
