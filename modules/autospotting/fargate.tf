@@ -111,7 +111,7 @@ resource "aws_iam_role_policy_attachment" "autospotting_task_execution_policy_at
 
 resource "aws_cloudwatch_log_group" "autospotting" {
   name              = "/fargate/autospotting-${module.label.id}/billing"
-  retention_in_days = 7
+  retention_in_days = var.log_retention_days
 }
 
 

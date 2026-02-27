@@ -132,6 +132,12 @@ variable "permissions_boundary_arn" {
   type        = string
 }
 
+variable "log_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+  default     = 365
+}
+
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"

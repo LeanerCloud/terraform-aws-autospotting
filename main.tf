@@ -62,6 +62,7 @@ module "autospotting" {
   lambda_memory_size      = var.lambda_memory_size
   lambda_tags             = var.lambda_tags
   lambda_use_public_ecr   = var.lambda_use_public_ecr
+  log_retention_days      = var.log_retention_days
 
   sqs_fifo_queue_name    = "${module.label.id}.fifo"
   notify_email_addresses = var.notify_email_addresses
@@ -124,11 +125,12 @@ resource "aws_cloudwatch_event_target" "cloudwatch_target" {
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
   name                = "${module.label.id}_frequency"
   schedule_expression = var.lambda_run_frequency
+  is_enabled          = var.autospotting_cron_schedule_state == "on"
 }
 
 resource "aws_cloudwatch_log_group" "log_group_autospotting" {
   name              = "/aws/lambda/${module.label.id}"
-  retention_in_days = 7
+  retention_in_days = var.log_retention_days
 }
 
 # Elastic Beanstalk policy
