@@ -16,8 +16,25 @@ resource "aws_cloudfront_origin_access_control" "s3" {
   signing_protocol                  = "sigv4"
 }
 
-# Note: Lambda OAC requires AWS provider v5+. For v4, the Lambda Function URL
-# handles its own auth via AWS_IAM authorization type.
+# CloudFront Origin Access Control for Lambda Function URL
+resource "aws_cloudfront_origin_access_control" "lambda" {
+  count                             = var.enable_cost_dashboard ? 1 : 0
+  name                              = "${module.label.id}-lambda-oac"
+  description                       = "OAC for Lambda Function URL"
+  origin_access_control_origin_type = "lambda"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+# Allow CloudFront to invoke the Lambda Function URL
+resource "aws_lambda_permission" "cloudfront_invoke" {
+  count                  = var.enable_cost_dashboard ? 1 : 0
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.autospotting.function_name
+  principal              = "cloudfront.amazonaws.com"
+  source_arn             = aws_cloudfront_distribution.dashboard[0].arn
+  function_url_auth_type = "AWS_IAM"
+}
 
 # CloudFront function for SPA routing (serves index.html for all non-file paths)
 resource "aws_cloudfront_function" "spa_routing" {
@@ -87,10 +104,11 @@ resource "aws_cloudfront_distribution" "dashboard" {
     origin_access_control_id = aws_cloudfront_origin_access_control.s3[0].id
   }
 
-  # Lambda origin for API
+  # Lambda origin for API (using OAC for IAM-authenticated invocation)
   origin {
-    domain_name = local.lambda_domain
-    origin_id   = local.lambda_origin_id
+    domain_name              = local.lambda_domain
+    origin_id                = local.lambda_origin_id
+    origin_access_control_id = aws_cloudfront_origin_access_control.lambda[0].id
 
     custom_origin_config {
       http_port              = 80
