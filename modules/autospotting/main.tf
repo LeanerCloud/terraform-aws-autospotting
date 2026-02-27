@@ -369,6 +369,14 @@ resource "aws_iam_role_policy" "autospotting_policy_fargate" {
   policy = data.aws_iam_policy_document.autospotting_policy[0].json
 }
 
+# Allow Lambda self-invocation from other regions
+resource "aws_lambda_permission" "invoke_from_other_regions" {
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.autospotting.function_name
+  principal      = "lambda.amazonaws.com"
+  source_account = data.aws_caller_identity.current.account_id
+}
+
 # Service-linked roles
 resource "aws_iam_service_linked_role" "spot" {
   count            = var.create_service_linked_roles ? 1 : 0
