@@ -54,15 +54,17 @@ module "autospotting" {
 
   label_context = module.label.context
 
-  lambda_cpu_architecture = var.lambda_cpu_architecture
-  lambda_source_ecr       = var.lambda_source_ecr
-  lambda_source_image     = var.lambda_source_image
-  lambda_source_image_tag = var.lambda_source_image_tag
-  lambda_timeout          = var.lambda_timeout
-  lambda_memory_size      = var.lambda_memory_size
-  lambda_tags             = var.lambda_tags
-  lambda_use_public_ecr   = var.lambda_use_public_ecr
-  log_retention_days      = var.log_retention_days
+  lambda_cpu_architecture               = var.lambda_cpu_architecture
+  lambda_source_ecr                     = var.lambda_source_ecr
+  lambda_source_image                   = var.lambda_source_image
+  lambda_source_image_tag               = var.lambda_source_image_tag
+  lambda_timeout                        = var.lambda_timeout
+  lambda_memory_size                    = var.lambda_memory_size
+  lambda_reserved_concurrent_executions = var.lambda_reserved_concurrent_executions
+  lambda_enable_xray                    = var.lambda_enable_xray
+  lambda_tags                           = var.lambda_tags
+  lambda_use_public_ecr                 = var.lambda_use_public_ecr
+  log_retention_days                    = var.log_retention_days
 
   sqs_fifo_queue_name    = "${module.label.id}.fifo"
   notify_email_addresses = var.notify_email_addresses

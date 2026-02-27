@@ -24,13 +24,21 @@ data "aws_arn" "lambda_function_arn" {
 }
 
 resource "aws_lambda_function" "autospotting" {
-  function_name = "autospotting-lambda-${module.label.id}"
-  package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.autospotting.repository_url}:${var.lambda_source_image_tag}"
-  role          = var.use_existing_iam_role ? data.aws_arn.role_arn[0].arn : aws_iam_role.autospotting_role[0].arn
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
-  tags          = merge(var.lambda_tags, module.label.tags)
+  function_name                  = "autospotting-lambda-${module.label.id}"
+  package_type                   = "Image"
+  image_uri                      = "${aws_ecr_repository.autospotting.repository_url}:${var.lambda_source_image_tag}"
+  role                           = var.use_existing_iam_role ? data.aws_arn.role_arn[0].arn : aws_iam_role.autospotting_role[0].arn
+  timeout                        = var.lambda_timeout
+  memory_size                    = var.lambda_memory_size
+  reserved_concurrent_executions = var.lambda_reserved_concurrent_executions
+  tags                           = merge(var.lambda_tags, module.label.tags)
+
+  dynamic "tracing_config" {
+    for_each = var.lambda_enable_xray ? [1] : []
+    content {
+      mode = "Active"
+    }
+  }
 
   environment {
     variables = {
@@ -121,6 +129,7 @@ data "aws_iam_policy_document" "autospotting_policy" {
       "ec2:AttachVolume",
       "ec2:CreateFleet",
       "ec2:CreateLaunchTemplate",
+      "ec2:CreateLaunchTemplateVersion",
       "ec2:CreateTags",
       "ec2:DeleteLaunchTemplate",
       "ec2:DeleteTags",

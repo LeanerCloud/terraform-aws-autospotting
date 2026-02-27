@@ -138,6 +138,18 @@ variable "log_retention_days" {
   default     = 365
 }
 
+variable "lambda_reserved_concurrent_executions" {
+  description = "Reserved concurrent executions for the Lambda function"
+  type        = number
+  default     = 100
+}
+
+variable "lambda_enable_xray" {
+  description = "Enable AWS X-Ray tracing for the Lambda function"
+  type        = bool
+  default     = false
+}
+
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"

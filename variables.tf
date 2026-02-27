@@ -304,7 +304,19 @@ variable "lambda_use_public_ecr" {
 
 variable "lambda_timeout" {
   description = "Timeout after which the lambda timeout"
-  default     = 300
+  default     = 900
+}
+
+variable "lambda_reserved_concurrent_executions" {
+  description = "Reserved concurrent executions for the Lambda function"
+  type        = number
+  default     = 100
+}
+
+variable "lambda_enable_xray" {
+  description = "Enable AWS X-Ray tracing for the Lambda function"
+  type        = bool
+  default     = false
 }
 
 variable "lambda_run_frequency" {
