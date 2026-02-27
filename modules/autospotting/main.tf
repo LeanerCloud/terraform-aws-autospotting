@@ -32,31 +32,88 @@ resource "aws_lambda_function" "autospotting" {
   }
 
   environment {
-    variables = {
-      ALLOW_PARALLEL_INSTANCE_REPLACEMENTS     = var.autospotting_allow_parallel_instance_replacements
-      ALLOWED_INSTANCE_TYPES                   = var.autospotting_allowed_instance_types
-      AUTOMATED_INSTANCE_DATA_UPDATE           = var.autospotting_automated_instance_data_update
-      BIDDING_POLICY                           = var.autospotting_bidding_policy
-      CONSIDER_EBS_BANDWIDTH                   = var.autospotting_consider_ebs_bandwidth
-      CRON_SCHEDULE                            = var.autospotting_cron_schedule
-      CRON_SCHEDULE_STATE                      = var.autospotting_cron_schedule_state
-      CRON_TIMEZONE                            = var.autospotting_cron_timezone
-      DISALLOWED_INSTANCE_TYPES                = var.autospotting_disallowed_instance_types
-      ENABLE_INSTANCE_REBALANCE_RECOMMENDATION = var.autospotting_enable_instance_rebalance_recommendation
-      INSTANCE_TYPES_PER_AZ                    = var.autospotting_instance_types_per_az
-      MIN_ON_DEMAND_NUMBER                     = var.autospotting_min_on_demand_number
-      MIN_ON_DEMAND_PERCENTAGE                 = var.autospotting_min_on_demand_percentage
-      NOTIFICATION_SNS_TOPIC                   = aws_sns_topic.email_notification.arn
-      ON_DEMAND_PRICE_MULTIPLIER               = var.autospotting_on_demand_price_multiplier
-      PRIORITIZED_INSTANCE_TYPES_BIAS          = var.autospotting_prioritized_instance_types_bias
-      REGIONS                                  = join(",", var.autospotting_regions_enabled)
-      SPOT_ALLOCATION_STRATEGY                 = var.autospotting_spot_allocation_strategy
-      SPOT_PRICE_BUFFER_PERCENTAGE             = var.autospotting_spot_price_buffer_percentage
-      SQS_QUEUE_URL                            = aws_sqs_queue.autospotting_fifo_queue.id
-      TAG_FILTERING_MODE                       = var.autospotting_tag_filtering_mode
-      TAG_FILTERS                              = var.autospotting_tag_filters
-      TERMINATION_NOTIFICATION_ACTION          = var.autospotting_termination_notification_action
-    }
+    variables = merge(
+      {
+        # Core configuration
+        ALLOW_PARALLEL_INSTANCE_REPLACEMENTS     = var.autospotting_allow_parallel_instance_replacements
+        ALLOWED_INSTANCE_TYPES                   = var.autospotting_allowed_instance_types
+        AUTOMATED_INSTANCE_DATA_UPDATE           = var.autospotting_automated_instance_data_update
+        BIDDING_POLICY                           = var.autospotting_bidding_policy
+        CONSIDER_EBS_BANDWIDTH                   = var.autospotting_consider_ebs_bandwidth
+        CRON_SCHEDULE                            = var.autospotting_cron_schedule
+        CRON_SCHEDULE_STATE                      = var.autospotting_cron_schedule_state
+        CRON_TIMEZONE                            = var.autospotting_cron_timezone
+        DISALLOWED_INSTANCE_TYPES                = var.autospotting_disallowed_instance_types
+        ENABLE_INSTANCE_REBALANCE_RECOMMENDATION = var.autospotting_enable_instance_rebalance_recommendation
+        HANDLE_LIFECYCLE_HOOK_EVENTS             = var.autospotting_handle_lifecycle_hook_events
+        INSTANCE_TYPES_PER_AZ                    = var.autospotting_instance_types_per_az
+        MIN_ON_DEMAND_NUMBER                     = var.autospotting_min_on_demand_number
+        MIN_ON_DEMAND_PERCENTAGE                 = var.autospotting_min_on_demand_percentage
+        NOTIFICATION_SNS_TOPIC                   = aws_sns_topic.email_notification.arn
+        ON_DEMAND_PRICE_MULTIPLIER               = var.autospotting_on_demand_price_multiplier
+        PRIORITIZED_INSTANCE_TYPES_BIAS          = var.autospotting_prioritized_instance_types_bias
+        REGIONS                                  = join(",", var.autospotting_regions_enabled)
+        SPOT_ALLOCATION_STRATEGY                 = var.autospotting_spot_allocation_strategy
+        SPOT_PRICE_BUFFER_PERCENTAGE             = var.autospotting_spot_price_buffer_percentage
+        SQS_QUEUE_URL                            = aws_sqs_queue.autospotting_fifo_queue.id
+        TAG_FILTERING_MODE                       = var.autospotting_tag_filtering_mode
+        TAG_FILTERS                              = var.autospotting_tag_filters
+        TERMINATION_NOTIFICATION_ACTION          = var.autospotting_termination_notification_action
+
+        # Multi-account
+        ALLOWED_CUSTOMER_ACCOUNTS    = var.allowed_customer_accounts
+        CUSTOMER_EXECUTION_ROLE_NAME = var.customer_execution_role_name
+        PRE_APPROVED_COMPANIES       = var.pre_approved_companies
+        MAIN_ACCOUNT_ID              = data.aws_caller_identity.current.account_id
+        SAAS_MODE                    = var.saas_mode
+
+        # RISP Coverage
+        ENABLE_RISP_COVERAGE          = var.enable_risp_coverage
+        RISP_BILLING_ACCOUNT_ROLE_ARN = var.risp_billing_account_role_arn
+        RISP_COVERAGE_THRESHOLD       = var.risp_coverage_threshold
+      },
+
+      # Multi-account table references (conditional)
+      var.enable_multi_account ? {
+        CUSTOMER_ACCOUNTS_TABLE = aws_dynamodb_table.customer_accounts[0].name
+        COMPANIES_TABLE         = aws_dynamodb_table.companies[0].name
+        BLOCKED_ACCOUNTS_TABLE  = aws_dynamodb_table.blocked_accounts[0].name
+        RATE_LIMIT_TABLE        = aws_dynamodb_table.rate_limit[0].name
+        LOCKING_TABLE           = aws_dynamodb_table.locking[0].name
+        DEFERRED_ACTIONS_TABLE  = aws_dynamodb_table.deferred_actions[0].name
+      } : {},
+
+      # Cost dashboard references (conditional)
+      var.enable_cost_dashboard ? {
+        ENABLE_COST_API                   = "true"
+        DASHBOARD_API_KEY_SECRET_ARN      = aws_secretsmanager_secret.dashboard_api_key[0].arn
+        TOKEN_HASHING_SECRET_ARN          = aws_secretsmanager_secret.token_hashing[0].arn
+        COST_DYNAMODB_TABLE               = aws_dynamodb_table.cost_snapshots[0].name
+        COST_HISTORY_BUCKET               = aws_s3_bucket.cost_history[0].id
+        ATHENA_DATABASE                   = aws_glue_catalog_database.cost_data[0].name
+        ATHENA_WORKGROUP                  = aws_athena_workgroup.cost_analytics[0].name
+        GLOBAL_CONFIG_TABLE               = aws_dynamodb_table.global_config[0].name
+        USERS_TABLE                       = aws_dynamodb_table.users[0].name
+        COMPANY_MEMBERSHIPS_TABLE         = aws_dynamodb_table.company_memberships[0].name
+        INVITATIONS_TABLE                 = aws_dynamodb_table.invitations[0].name
+        INVOICES_TABLE                    = aws_dynamodb_table.invoices[0].name
+        COMPANY_SETTINGS_TABLE            = aws_dynamodb_table.company_settings[0].name
+        ACCOUNT_SETTINGS_TABLE            = aws_dynamodb_table.account_settings[0].name
+        SES_FROM_ADDRESS                  = var.ses_from_address
+        SES_CONFIGURATION_SET             = aws_ses_configuration_set.transactional[0].name
+        ADMIN_EMAIL                       = var.admin_email
+        STRIPE_API_KEY_SECRET_ARN         = aws_secretsmanager_secret.stripe_api_key[0].arn
+        STRIPE_PUBLISHABLE_KEY_SECRET_ARN = aws_secretsmanager_secret.stripe_publishable_key[0].arn
+        STRIPE_WEBHOOK_SECRET_ARN         = aws_secretsmanager_secret.stripe_webhook_secret[0].arn
+        STRIPE_PRICE_ID_SECRET_ARN        = aws_secretsmanager_secret.stripe_price_id[0].arn
+        DASHBOARD_URL                     = var.dashboard_domain_name != "" ? "https://${var.dashboard_domain_name}" : ""
+      } : {},
+
+      # RISP coverage table reference (conditional)
+      var.enable_risp_coverage ? {
+        RISP_COVERAGE_TABLE = aws_dynamodb_table.risp_coverage[0].name
+      } : {},
+    )
   }
   depends_on = [
     docker_registry_image.destination,
@@ -173,7 +230,7 @@ data "aws_iam_policy_document" "autospotting_policy" {
       "ssm:PutParameter",
       "ssm:GetParameterHistory"
     ]
-    resources = ["arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/autospotting*"]
+    resources = ["arn:aws:ssm:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:parameter/autospotting*"]
   }
 }
 
@@ -207,6 +264,7 @@ resource "aws_sqs_queue" "autospotting_fifo_queue" {
   fifo_queue                  = true
   message_retention_seconds   = 900
   visibility_timeout_seconds  = 900
+  sqs_managed_sse_enabled     = true
 
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.autospotting_dlq.arn
@@ -218,6 +276,7 @@ resource "aws_sqs_queue" "autospotting_dlq" {
   name                      = "${module.label.id}-dlq.fifo"
   fifo_queue                = true
   message_retention_seconds = 1209600
+  sqs_managed_sse_enabled   = true
 }
 
 resource "aws_lambda_event_source_mapping" "autospotting_lambda_event_source_mapping_new_role" {
