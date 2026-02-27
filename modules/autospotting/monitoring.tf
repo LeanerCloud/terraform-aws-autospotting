@@ -52,11 +52,10 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   namespace           = "AWS/Lambda"
   period              = 300
   statistic           = "Average"
-  # CFN hardcodes 10000ms; we use 90% of the configured timeout for adaptability
-  threshold          = var.lambda_timeout * 1000 * 0.9
-  treat_missing_data = "notBreaching"
-  alarm_description  = "Lambda function duration approaching timeout"
-  alarm_actions      = [aws_sns_topic.email_notification.arn]
+  threshold           = 10000
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "Lambda function duration approaching timeout"
+  alarm_actions       = [aws_sns_topic.email_notification.arn]
 
   dimensions = {
     FunctionName = aws_lambda_function.autospotting.function_name
