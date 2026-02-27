@@ -2,6 +2,11 @@
 variable "autospotting_sqs_queue_arn" {}
 variable "autospotting_sqs_queue_url" {}
 variable "put_event_role_arn" {}
+variable "enable_multi_account" {
+  description = "Enable multi-account mode"
+  type        = bool
+  default     = false
+}
 variable "regions" {
   description = "Regions to handle"
   type        = list(string)

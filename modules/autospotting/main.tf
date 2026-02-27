@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "~> 3.0"
-    }
-  }
-}
-
 module "label" {
   source  = "git::https://github.com/cloudposse/terraform-null-label.git?ref=0.25.0"
   context = var.label_context
@@ -194,10 +185,20 @@ resource "aws_iam_role_policy" "autospotting_policy_lambda" {
 }
 
 resource "aws_iam_role_policy" "autospotting_policy_fargate" {
-  count  = var.use_existing_iam_role ? 0 : 1
+  count  = var.use_existing_iam_role || !var.deploy_fargate ? 0 : 1
   name   = "policy_for_fargate_${module.label.id}"
   role   = aws_iam_role.autospotting_task_execution[0].id
-  policy = data.aws_iam_policy_document.autospotting_policy[count.index].json
+  policy = data.aws_iam_policy_document.autospotting_policy[0].json
+}
+
+# Service-linked roles
+resource "aws_iam_service_linked_role" "spot" {
+  count            = var.create_service_linked_roles ? 1 : 0
+  aws_service_name = "spot.amazonaws.com"
+}
+
+resource "random_id" "suffix" {
+  byte_length = 4
 }
 
 resource "aws_sqs_queue" "autospotting_fifo_queue" {
@@ -206,6 +207,17 @@ resource "aws_sqs_queue" "autospotting_fifo_queue" {
   fifo_queue                  = true
   message_retention_seconds   = 900
   visibility_timeout_seconds  = 900
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.autospotting_dlq.arn
+    maxReceiveCount     = 3
+  })
+}
+
+resource "aws_sqs_queue" "autospotting_dlq" {
+  name                      = "${module.label.id}-dlq.fifo"
+  fifo_queue                = true
+  message_retention_seconds = 1209600
 }
 
 resource "aws_lambda_event_source_mapping" "autospotting_lambda_event_source_mapping_new_role" {

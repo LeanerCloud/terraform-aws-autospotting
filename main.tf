@@ -92,12 +92,38 @@ module "autospotting" {
   autospotting_tag_filtering_mode                       = var.autospotting_tag_filtering_mode
   autospotting_tag_filters                              = var.autospotting_tag_filters
   autospotting_termination_notification_action          = var.autospotting_termination_notification_action
+  autospotting_handle_lifecycle_hook_events             = var.autospotting_handle_lifecycle_hook_events
 
   use_existing_iam_role    = var.use_existing_iam_role
   existing_iam_role_arn    = var.use_existing_iam_role ? data.aws_arn.role_arn[0].arn : ""
   use_existing_subnets     = var.use_existing_subnets
   existing_subnets         = var.existing_subnets
   permissions_boundary_arn = var.permissions_boundary_arn
+
+  # Multi-account
+  enable_multi_account         = var.enable_multi_account
+  allowed_customer_accounts    = var.allowed_customer_accounts
+  customer_execution_role_name = var.customer_execution_role_name
+  pre_approved_companies       = var.pre_approved_companies
+
+  # SaaS / Cost Dashboard
+  saas_mode                   = var.saas_mode
+  enable_cost_dashboard       = var.enable_cost_dashboard
+  enable_kms_encryption       = var.enable_kms_encryption
+  admin_email                 = var.admin_email
+  ses_from_address            = var.ses_from_address
+  glue_database_name          = var.glue_database_name
+  dashboard_domain_name       = var.dashboard_domain_name
+  dashboard_hosted_zone_id    = var.dashboard_hosted_zone_id
+  create_hosted_zone          = var.create_hosted_zone
+  hosted_zone_domain_name     = var.hosted_zone_domain_name
+  deploy_fargate              = var.deploy_fargate
+  create_service_linked_roles = var.create_service_linked_roles
+
+  # RISP Coverage
+  enable_risp_coverage          = var.enable_risp_coverage
+  risp_billing_account_role_arn = var.risp_billing_account_role_arn
+  risp_coverage_threshold       = var.risp_coverage_threshold
 }
 
 # Regional resources that trigger the main Lambda function
@@ -108,6 +134,7 @@ module "regional" {
   label_context              = module.label.context
   regions                    = local.regions
   put_event_role_arn         = var.use_existing_iam_role ? var.existing_iam_role_arn : aws_iam_role.put_events_role[0].arn
+  enable_multi_account       = var.enable_multi_account
 }
 
 resource "aws_lambda_permission" "cloudwatch_events_permission" {
@@ -193,4 +220,71 @@ resource "aws_iam_role_policy" "put_event_policy_attachment" {
   name   = "policy_for_put_events_${module.label.id}"
   role   = aws_iam_role.put_events_role[count.index].id
   policy = data.aws_iam_policy_document.put_events_policy[count.index].json
+}
+
+# ──── EventBus Policies for Multi-Account ────
+
+resource "aws_cloudwatch_event_bus_policy" "per_account" {
+  count          = var.enable_multi_account && var.allowed_customer_accounts != "" ? 1 : 0
+  event_bus_name = "default"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSpecificAccountsToPutEvents"
+        Effect = "Allow"
+        Principal = {
+          AWS = [for acct in split(",", var.allowed_customer_accounts) : "arn:aws:iam::${trimspace(acct)}:root"]
+        }
+        Action   = "events:PutEvents"
+        Resource = data.aws_cloudwatch_event_bus.default.arn
+      }
+    ]
+  })
+}
+
+resource "aws_cloudwatch_event_bus_policy" "per_organization" {
+  count          = var.enable_multi_account && var.allowed_organizations != "" ? 1 : 0
+  event_bus_name = "default"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowOrganizationsToPutEvents"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+        Action   = "events:PutEvents"
+        Resource = data.aws_cloudwatch_event_bus.default.arn
+        Condition = {
+          StringEquals = {
+            "aws:PrincipalOrgID" = split(",", var.allowed_organizations)
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_cloudwatch_event_bus_policy" "unrestricted" {
+  count          = var.enable_multi_account && var.allow_unrestricted_events ? 1 : 0
+  event_bus_name = "default"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowAllAccountsToPutEvents"
+        Effect = "Allow"
+        Principal = {
+          AWS = "*"
+        }
+        Action   = "events:PutEvents"
+        Resource = data.aws_cloudwatch_event_bus.default.arn
+      }
+    ]
+  })
 }

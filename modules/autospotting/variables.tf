@@ -150,6 +150,128 @@ variable "lambda_enable_xray" {
   default     = false
 }
 
+# Multi-account / SaaS
+variable "enable_multi_account" {
+  description = "Enable multi-account mode with DynamoDB tables for customer management"
+  type        = bool
+  default     = false
+}
+
+variable "allowed_customer_accounts" {
+  description = "Comma-separated list of AWS account IDs allowed to use AutoSpotting"
+  type        = string
+  default     = ""
+}
+
+variable "customer_execution_role_name" {
+  description = "Name of the IAM role in customer accounts that AutoSpotting assumes"
+  type        = string
+  default     = "AutoSpottingRole"
+}
+
+variable "pre_approved_companies" {
+  description = "Comma-separated list of pre-approved company identifiers"
+  type        = string
+  default     = ""
+}
+
+variable "saas_mode" {
+  description = "Enable SaaS mode features (billing, multi-company UI)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cost_dashboard" {
+  description = "Enable cost dashboard with S3, Glue, CloudFront, and related infrastructure"
+  type        = bool
+  default     = false
+}
+
+variable "enable_kms_encryption" {
+  description = "Enable KMS encryption for DynamoDB tables and SNS topics"
+  type        = bool
+  default     = false
+}
+
+variable "admin_email" {
+  description = "Admin email address for notifications and SES"
+  type        = string
+  default     = ""
+}
+
+variable "ses_from_address" {
+  description = "Email address to use as the SES sender"
+  type        = string
+  default     = ""
+}
+
+variable "glue_database_name" {
+  description = "Name for the Glue catalog database"
+  type        = string
+  default     = "autospotting_cost_data"
+}
+
+variable "dashboard_domain_name" {
+  description = "Custom domain name for the cost dashboard CloudFront distribution"
+  type        = string
+  default     = ""
+}
+
+variable "dashboard_hosted_zone_id" {
+  description = "Route53 hosted zone ID for the dashboard domain"
+  type        = string
+  default     = ""
+}
+
+variable "create_hosted_zone" {
+  description = "Create a new Route53 hosted zone for the dashboard domain"
+  type        = bool
+  default     = false
+}
+
+variable "hosted_zone_domain_name" {
+  description = "Domain name for the new Route53 hosted zone"
+  type        = string
+  default     = ""
+}
+
+variable "deploy_fargate" {
+  description = "Deploy Fargate resources for billing tasks"
+  type        = bool
+  default     = true
+}
+
+variable "create_service_linked_roles" {
+  description = "Create AWS service-linked roles for Spot and ECS"
+  type        = bool
+  default     = true
+}
+
+variable "autospotting_handle_lifecycle_hook_events" {
+  description = "Enable handling of ASG lifecycle hook events"
+  type        = bool
+  default     = false
+}
+
+# RISP Coverage
+variable "enable_risp_coverage" {
+  description = "Enable Reserved Instance and Savings Plans coverage monitoring"
+  type        = bool
+  default     = false
+}
+
+variable "risp_billing_account_role_arn" {
+  description = "ARN of the IAM role in the billing account for cost data access"
+  type        = string
+  default     = ""
+}
+
+variable "risp_coverage_threshold" {
+  description = "Threshold percentage for RISP coverage alerts"
+  type        = number
+  default     = 80
+}
+
 # Label configuration
 variable "label_context" {
   description = "Used to pass in label module context"
