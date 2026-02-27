@@ -49,8 +49,8 @@ output "regions" {
   value = local.regions
 }
 
-module "aws_lambda_function" {
-  source = "./modules/lambda"
+module "autospotting" {
+  source = "./modules/autospotting"
 
   label_context = module.label.context
 
@@ -100,8 +100,8 @@ module "aws_lambda_function" {
 # Regional resources that trigger the main Lambda function
 module "regional" {
   source                     = "./modules/regional"
-  autospotting_sqs_queue_url = module.aws_lambda_function.sqs_queue_url
-  autospotting_sqs_queue_arn = module.aws_lambda_function.sqs_queue_arn
+  autospotting_sqs_queue_url = module.autospotting.sqs_queue_url
+  autospotting_sqs_queue_arn = module.autospotting.sqs_queue_arn
   label_context              = module.label.context
   regions                    = local.regions
   put_event_role_arn         = var.use_existing_iam_role ? var.existing_iam_role_arn : aws_iam_role.put_events_role[0].arn
@@ -110,7 +110,7 @@ module "regional" {
 resource "aws_lambda_permission" "cloudwatch_events_permission" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = module.aws_lambda_function.function_name
+  function_name = module.autospotting.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency.arn
 }
@@ -118,7 +118,7 @@ resource "aws_lambda_permission" "cloudwatch_events_permission" {
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
   rule      = aws_cloudwatch_event_rule.cloudwatch_frequency.name
   target_id = "run_autospotting"
-  arn       = module.aws_lambda_function.arn
+  arn       = module.autospotting.arn
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
