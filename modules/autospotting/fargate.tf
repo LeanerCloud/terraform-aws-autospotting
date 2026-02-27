@@ -14,19 +14,18 @@ data "aws_region" "current" {}
 module "vpc" {
   count   = local.deploy_fargate && !var.use_existing_subnets ? 1 : 0
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 2.21"
+  version = ">= 5.0, < 7.0"
 
   name = "autospotting-${module.label.id}"
 
-  cidr = "10.0.0.0/24"
+  cidr = "192.168.0.0/24"
 
   azs            = [data.aws_availability_zones.available[0].names[0], data.aws_availability_zones.available[0].names[1]]
-  public_subnets = ["10.0.0.0/25", "10.0.0.128/25"]
+  public_subnets = ["192.168.0.0/25", "192.168.0.128/25"]
 
-  enable_nat_gateway      = false
-  enable_dns_hostnames    = true
-  enable_dns_support      = true
-  map_public_ip_on_launch = true
+  enable_nat_gateway   = false
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 }
 
 # Egress-only security group for Fargate tasks
@@ -102,7 +101,7 @@ resource "aws_ecs_task_definition" "autospotting_task_definition" {
       logDriver = "awslogs"
       options = {
         awslogs-group         = aws_cloudwatch_log_group.autospotting[0].name
-        awslogs-region        = data.aws_region.current.name
+        awslogs-region        = data.aws_region.current.id
         awslogs-stream-prefix = "autospotting-billing"
       }
     }

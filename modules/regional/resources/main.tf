@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = ">= 5.0"
     }
   }
 }
@@ -40,8 +40,8 @@ PATTERN
 
 resource "aws_cloudwatch_event_target" "autospotting_regional_ec2_spot_event_capture" {
   rule     = aws_cloudwatch_event_rule.autospotting_regional_ec2_spot_event_capture.name
-  arn      = data.aws_region.current.name == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
-  role_arn = data.aws_region.current.name == var.main_region ? "" : var.put_event_role_arn
+  arn      = data.aws_region.current.id == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
+  role_arn = data.aws_region.current.id == var.main_region ? "" : var.put_event_role_arn
   sqs_target {
     message_group_id = "autospotting_${module.label.id}"
   }
@@ -72,8 +72,8 @@ PATTERN
 
 resource "aws_cloudwatch_event_target" "autospotting_regional_ec2_instance_launch_event_capture" {
   rule     = aws_cloudwatch_event_rule.autospotting_regional_ec2_instance_launch_event_capture.name
-  arn      = data.aws_region.current.name == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
-  role_arn = data.aws_region.current.name == var.main_region ? "" : var.put_event_role_arn
+  arn      = data.aws_region.current.id == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
+  role_arn = data.aws_region.current.id == var.main_region ? "" : var.put_event_role_arn
   sqs_target {
     message_group_id = "autospotting_${module.label.id}"
   }
@@ -112,22 +112,22 @@ PATTERN
 
 resource "aws_cloudwatch_event_target" "autospotting_regional_autoscaling_lifecycle_hook_event_capture" {
   rule     = aws_cloudwatch_event_rule.autospotting_regional_autoscaling_lifecycle_hook_event_capture.name
-  arn      = data.aws_region.current.name == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
-  role_arn = data.aws_region.current.name == var.main_region ? "" : var.put_event_role_arn
+  arn      = data.aws_region.current.id == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
+  role_arn = data.aws_region.current.id == var.main_region ? "" : var.put_event_role_arn
   sqs_target {
     message_group_id = "autospotting_${module.label.id}"
   }
 }
 
 resource "aws_sqs_queue_policy" "autospotting_events_to_sqs" {
-  count     = data.aws_region.current.name == var.main_region ? 1 : 0
+  count     = data.aws_region.current.id == var.main_region ? 1 : 0
   queue_url = var.autospotting_sqs_queue_url
   policy    = data.aws_iam_policy_document.autospotting_sqs_policy[0].json
 }
 
 
 data "aws_iam_policy_document" "autospotting_sqs_policy" {
-  count   = data.aws_region.current.name == var.main_region ? 1 : 0
+  count   = data.aws_region.current.id == var.main_region ? 1 : 0
   version = "2012-10-17"
 
   statement {
