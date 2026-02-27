@@ -8,6 +8,12 @@ variable "event_bus_arn" {}
 
 variable "main_region" {}
 
+variable "enable_multi_account" {
+  description = "Enable multi-account support (adds registration signal EventBridge rule)"
+  type        = bool
+  default     = false
+}
+
 variable "log_retention_period" {
   description = "Number of days to keep the Lambda function logs in CloudWatch."
   default     = 7
