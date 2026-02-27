@@ -143,11 +143,11 @@ resource "aws_iam_role" "autospotting_role" {
 
 data "aws_iam_policy_document" "autospotting_policy" {
   count = var.use_existing_iam_role ? 0 : 1
+
+  # AutoScaling read — Describe* does not support resource-level permissions
   statement {
+    sid = "AutoScalingReadPermissions"
     actions = [
-      "autoscaling:AttachInstances",
-      "autoscaling:CompleteLifecycleAction",
-      "autoscaling:CreateOrUpdateTags",
       "autoscaling:DescribeAutoScalingGroups",
       "autoscaling:DescribeAutoScalingInstances",
       "autoscaling:DescribeInstanceRefreshes",
@@ -155,30 +155,69 @@ data "aws_iam_policy_document" "autospotting_policy" {
       "autoscaling:DescribeLifecycleHooks",
       "autoscaling:DescribeScalingActivities",
       "autoscaling:DescribeTags",
+    ]
+    resources = ["*"]
+  }
+
+  # AutoScaling write — scoped to ASGs tagged autospotting=enabled
+  statement {
+    sid = "AutoScalingWritePermissions"
+    actions = [
+      "autoscaling:AttachInstances",
+      "autoscaling:CompleteLifecycleAction",
+      "autoscaling:CreateOrUpdateTags",
       "autoscaling:DetachInstances",
       "autoscaling:ResumeProcesses",
       "autoscaling:SetInstanceProtection",
       "autoscaling:SuspendProcesses",
       "autoscaling:TerminateInstanceInAutoScalingGroup",
       "autoscaling:UpdateAutoScalingGroup",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/autospotting"
+      values   = ["enabled"]
+    }
+  }
+
+  # AWS Marketplace metering — does not support resource-level permissions
+  statement {
+    sid = "MarketplaceMetering"
+    actions = [
       "aws-marketplace:MeterUsage",
       "aws-marketplace:RegisterUsage",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudFormation — scoped to account stacks
+  statement {
+    sid = "CloudFormationRead"
+    actions = [
       "cloudformation:Describe*",
+    ]
+    resources = ["arn:aws:cloudformation:*:${data.aws_caller_identity.current.account_id}:stack/*"]
+  }
+
+  # CodeDeploy — dynamically discovered, cannot be pre-scoped
+  statement {
+    sid = "CodeDeployPermissions"
+    actions = [
       "codedeploy:CreateDeployment",
       "codedeploy:GetApplicationRevision",
       "codedeploy:GetDeploymentConfig",
       "codedeploy:GetDeploymentGroup",
       "codedeploy:ListApplications",
       "codedeploy:ListDeploymentGroups",
-      "elasticbeanstalk:DescribeEnvironments",
-      "ec2:AssociateAddress",
-      "ec2:AttachVolume",
-      "ec2:CreateFleet",
-      "ec2:CreateLaunchTemplate",
-      "ec2:CreateLaunchTemplateVersion",
-      "ec2:CreateTags",
-      "ec2:DeleteLaunchTemplate",
-      "ec2:DeleteTags",
+    ]
+    resources = ["*"]
+  }
+
+  # EC2 read — Describe* does not support resource-level permissions
+  statement {
+    sid = "EC2ReadPermissions"
+    actions = [
       "ec2:DescribeAddresses",
       "ec2:DescribeImages",
       "ec2:DescribeInstanceAttribute",
@@ -189,31 +228,112 @@ data "aws_iam_policy_document" "autospotting_policy" {
       "ec2:DescribeSecurityGroups",
       "ec2:DescribeSpotPriceHistory",
       "ec2:DescribeVolumes",
+    ]
+    resources = ["*"]
+  }
+
+  # EC2 write — security enforced via ASG tag conditions above
+  statement {
+    sid = "EC2WritePermissions"
+    actions = [
+      "ec2:AssociateAddress",
+      "ec2:AttachVolume",
+      "ec2:CreateFleet",
+      "ec2:CreateLaunchTemplate",
+      "ec2:CreateLaunchTemplateVersion",
+      "ec2:CreateTags",
+      "ec2:DeleteLaunchTemplate",
+      "ec2:DeleteTags",
       "ec2:DetachVolume",
       "ec2:DisassociateAddress",
       "ec2:RunInstances",
       "ec2:TerminateInstances",
+    ]
+    resources = ["*"]
+  }
+
+  # Elastic Beanstalk — Describe* does not support resource-level permissions
+  statement {
+    sid       = "ElasticBeanstalkRead"
+    actions   = ["elasticbeanstalk:DescribeEnvironments"]
+    resources = ["*"]
+  }
+
+  # ECS — cluster discovery is dynamic across all enabled ASGs
+  statement {
+    sid = "ECSPermissions"
+    actions = [
       "ecs:DeregisterContainerInstance",
       "ecs:DescribeContainerInstances",
       "ecs:ListClusters",
       "ecs:ListContainerInstances",
       "ecs:UpdateContainerInstancesState",
+    ]
+    resources = ["*"]
+  }
+
+  # ELB — dynamically discovers load balancers attached to ASGs
+  statement {
+    sid = "ELBPermissions"
+    actions = [
       "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
       "elasticloadbalancing:DeregisterTargets",
       "elasticloadbalancing:DescribeLoadBalancers",
       "elasticloadbalancing:DescribeTargetGroups",
       "elasticloadbalancing:DescribeTargetHealth",
-      "iam:CreateServiceLinkedRole",
-      "iam:PassRole",
+    ]
+    resources = ["*"]
+  }
+
+  # IAM — scoped to account service-linked roles
+  statement {
+    sid     = "IAMServiceLinkedRole"
+    actions = ["iam:CreateServiceLinkedRole"]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/*",
+    ]
+  }
+
+  # IAM PassRole — scoped to account roles, restricted to EC2 and AutoScaling services
+  statement {
+    sid     = "IAMPassRole"
+    actions = ["iam:PassRole"]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["ec2.amazonaws.com", "autoscaling.amazonaws.com"]
+    }
+  }
+
+  # CloudWatch Logs — scoped to autospotting Lambda log groups
+  statement {
+    sid = "CloudWatchLogs"
+    actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
-      "sns:Publish",
     ]
-
-    resources = ["*"]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/autospotting-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/autospotting-*:*",
+    ]
   }
+
+  # SNS — scoped to autospotting notification topics
   statement {
+    sid     = "SNSPublish"
+    actions = ["sns:Publish"]
+    resources = [
+      "arn:aws:sns:*:${data.aws_caller_identity.current.account_id}:*autospotting*",
+    ]
+  }
+
+  # SQS — scoped to the FIFO queue
+  statement {
+    sid = "SQSAccess"
     actions = [
       "sqs:ReceiveMessage",
       "sqs:SendMessage",
@@ -222,11 +342,14 @@ data "aws_iam_policy_document" "autospotting_policy" {
     ]
     resources = [aws_sqs_queue.autospotting_fifo_queue.arn]
   }
+
+  # SSM — scoped to autospotting parameters
   statement {
+    sid = "SSMParameters"
     actions = [
       "ssm:GetParameter",
       "ssm:PutParameter",
-      "ssm:GetParameterHistory"
+      "ssm:GetParameterHistory",
     ]
     resources = ["arn:aws:ssm:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:parameter/autospotting*"]
   }
