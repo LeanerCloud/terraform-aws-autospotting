@@ -316,7 +316,7 @@ variable "lambda_reserved_concurrent_executions" {
 variable "lambda_enable_xray" {
   description = "Enable AWS X-Ray tracing for the Lambda function"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "lambda_run_frequency" {
