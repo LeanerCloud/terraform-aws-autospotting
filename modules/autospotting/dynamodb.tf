@@ -94,6 +94,10 @@ resource "aws_dynamodb_table" "customer_accounts" {
     enabled = true
   }
 
+  lifecycle {
+    prevent_destroy = true
+  }
+
   tags = merge(module.label.tags, {
     Name = "${module.label.id}-CustomerAccounts"
   })
@@ -116,6 +120,10 @@ resource "aws_dynamodb_table" "companies" {
 
   point_in_time_recovery {
     enabled = true
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = merge(module.label.tags, {
@@ -512,6 +520,10 @@ resource "aws_dynamodb_table" "invoices" {
 
   point_in_time_recovery {
     enabled = true
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 
   tags = merge(module.label.tags, {

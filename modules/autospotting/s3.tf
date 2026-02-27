@@ -1,9 +1,8 @@
 # ──── S3 Buckets (conditional on enable_cost_dashboard) ────
 
 resource "aws_s3_bucket" "audit" {
-  count         = var.enable_cost_dashboard ? 1 : 0
-  bucket        = "${module.label.id}-audit-${random_id.suffix.hex}"
-  force_destroy = true
+  count  = var.enable_cost_dashboard ? 1 : 0
+  bucket = "${module.label.id}-audit-${random_id.suffix.hex}"
 
   tags = merge(module.label.tags, {
     Name = "${module.label.id}-Audit"
@@ -56,9 +55,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "audit" {
 }
 
 resource "aws_s3_bucket" "cost_history" {
-  count         = var.enable_cost_dashboard ? 1 : 0
-  bucket        = "${module.label.id}-cost-history-${random_id.suffix.hex}"
-  force_destroy = true
+  count  = var.enable_cost_dashboard ? 1 : 0
+  bucket = "${module.label.id}-cost-history-${random_id.suffix.hex}"
 
   tags = merge(module.label.tags, {
     Name = "${module.label.id}-CostHistory"
