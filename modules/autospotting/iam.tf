@@ -328,10 +328,7 @@ data "aws_iam_policy_document" "risp_coverage_policy" {
     actions = [
       "dynamodb:GetItem",
       "dynamodb:PutItem",
-      "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
       "dynamodb:Query",
-      "dynamodb:Scan",
     ]
     resources = [
       aws_dynamodb_table.risp_coverage[0].arn,
