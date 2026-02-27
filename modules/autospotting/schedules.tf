@@ -1,6 +1,8 @@
 # ──── Scheduled Events ────
 
 # Cost collection: hourly (conditional on enable_cost_dashboard)
+# CFN invokes Lambda directly; we route via SQS for consistency with other
+# scheduled events. Go code handles both SQS-wrapped and direct invocations.
 resource "aws_cloudwatch_event_rule" "cost_collection" {
   count               = var.enable_cost_dashboard ? 1 : 0
   name                = "${module.label.id}-cost-collection"
@@ -51,6 +53,9 @@ resource "aws_cloudwatch_event_target" "risp_collection" {
 }
 
 # Invoice generation: monthly 1st at 9AM UTC (conditional on enable_cost_dashboard)
+# CFN gates on SaaSMode; we gate on enable_cost_dashboard because it creates the
+# required InvoicesTable and other dependencies. Invoice generation is logically
+# independent but shares infrastructure with the cost dashboard.
 resource "aws_cloudwatch_event_rule" "invoice_generation" {
   count               = var.enable_cost_dashboard ? 1 : 0
   name                = "${module.label.id}-invoice-generation"

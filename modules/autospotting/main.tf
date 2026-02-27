@@ -103,7 +103,9 @@ resource "aws_lambda_function" "autospotting" {
         STRIPE_PUBLISHABLE_KEY_SECRET_ARN = aws_secretsmanager_secret.stripe_publishable_key[0].arn
         STRIPE_WEBHOOK_SECRET_ARN         = aws_secretsmanager_secret.stripe_webhook_secret[0].arn
         STRIPE_PRICE_ID_SECRET_ARN        = aws_secretsmanager_secret.stripe_price_id[0].arn
-        DASHBOARD_URL                     = var.dashboard_domain_name != "" ? "https://${var.dashboard_domain_name}" : ""
+        # CFN seeds GlobalConfigTable via StoreDashboardConfig custom resource;
+        # we pass it as env var instead (Go checks env var first, then DynamoDB)
+        DASHBOARD_URL = var.dashboard_domain_name != "" ? "https://${var.dashboard_domain_name}" : ""
       } : {},
 
       # RISP coverage table reference (conditional)
