@@ -117,27 +117,6 @@ resource "aws_lambda_function" "autospotting" {
   ]
 }
 
-# Seed GlobalConfig table with DashboardURL (matching CFN StoreDashboardConfig)
-resource "aws_dynamodb_table_item" "dashboard_url_config" {
-  count      = var.enable_cost_dashboard && var.dashboard_domain_name != "" ? 1 : 0
-  table_name = aws_dynamodb_table.global_config[0].name
-  hash_key   = "PK"
-  range_key  = "SK"
-
-  item = jsonencode({
-    PK          = { S = "CONFIG" }
-    SK          = { S = "DashboardURL" }
-    Value       = { S = "https://${var.dashboard_domain_name}" }
-    Type        = { S = "string" }
-    Category    = { S = "email" }
-    Description = { S = "Dashboard URL for password reset and invitation emails." }
-  })
-
-  lifecycle {
-    ignore_changes = [item]
-  }
-}
-
 data "aws_iam_policy_document" "lambda_policy" {
   statement {
     actions = ["sts:AssumeRole"]

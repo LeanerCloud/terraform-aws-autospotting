@@ -52,7 +52,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   namespace           = "AWS/Lambda"
   period              = 300
   statistic           = "Average"
-  threshold           = 10000
+  threshold           = var.lambda_timeout * 1000 * 0.9
   treat_missing_data  = "notBreaching"
   alarm_description   = "Lambda function duration approaching timeout"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
