@@ -103,32 +103,6 @@ EOF
 }
 
 
-variable "autospotting_disable_instance_rebalance_recommendation" {
-  description = <<EOF
-  Disables the handling of instance rebalancing events, only handling the 2 minute
-  termination events.
-
-  Pros:
-  - handling these give earlier instance replacements than the usual 2 minute notice,
-    typically between 5-10 minutes.
-  - they allow the execution of termination lifecycle hooks.
-
-  Cons:
-  - These events fire for all instances in a given capacity pool and have been seen
-    to cause multiple parallel instance replacements on groups with multiple instances
-    per AZ.
-  - sometimes the instances aren't terminated, resulting in extra churn.
-
-  Recommendation: set to true(disabled) on large groups, which have multiple Spot
-  instances per AZ, to avoid multiple instance replacements in parallel.
-  EOF
-  default     = "false"
-  validation {
-    condition     = can(regex("^(true|false)$", var.autospotting_disable_instance_rebalance_recommendation))
-    error_message = "Allowed values are 'true' or 'false'."
-  }
-}
-
 variable "autospotting_disallowed_instance_types" {
   description = <<EOF
 Comma separated list of disallowed instance types for spot requests,
