@@ -263,7 +263,6 @@ data "aws_iam_policy_document" "autospotting_policy" {
   statement {
     sid = "ECSPermissions"
     actions = [
-      "ecs:DeregisterContainerInstance",
       "ecs:DescribeContainerInstances",
       "ecs:ListClusters",
       "ecs:ListContainerInstances",

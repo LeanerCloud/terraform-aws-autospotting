@@ -236,7 +236,6 @@ data "aws_iam_policy_document" "cost_dashboard_policy" {
     actions = [
       "glue:GetDatabase",
       "glue:GetTable",
-      "glue:GetTables",
       "glue:GetPartitions",
       "glue:BatchCreatePartition",
       "glue:CreatePartition",
@@ -270,6 +269,21 @@ data "aws_iam_policy_document" "cost_dashboard_policy" {
     actions = [
       "ses:SendEmail",
       "ses:SendRawEmail",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "ses:FromAddress"
+      values   = [var.ses_from_address]
+    }
+  }
+
+  statement {
+    sid    = "SESVerificationAccess"
+    effect = "Allow"
+    actions = [
+      "ses:GetIdentityVerificationAttributes",
+      "ses:VerifyEmailIdentity",
     ]
     resources = ["*"]
   }
