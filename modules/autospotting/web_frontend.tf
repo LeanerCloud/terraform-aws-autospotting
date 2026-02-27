@@ -40,7 +40,7 @@ resource "aws_lambda_permission" "cloudfront_invoke" {
 resource "aws_cloudfront_function" "spa_routing" {
   count   = var.enable_cost_dashboard ? 1 : 0
   name    = "${replace(module.label.id, "-", "_")}_spa_routing"
-  runtime = "cloudfront-js-1.0"
+  runtime = "cloudfront-js-2.0"
   code    = <<-EOF
     function handler(event) {
       var request = event.request;
@@ -67,7 +67,7 @@ resource "aws_cloudfront_function" "spa_routing" {
 resource "aws_cloudfront_function" "api_prefix_strip" {
   count   = var.enable_cost_dashboard ? 1 : 0
   name    = "${replace(module.label.id, "-", "_")}_api_prefix_strip"
-  runtime = "cloudfront-js-1.0"
+  runtime = "cloudfront-js-2.0"
   code    = <<-EOF
     function handler(event) {
       var request = event.request;
@@ -95,6 +95,7 @@ resource "aws_cloudfront_distribution" "dashboard" {
   enabled = true
 
   default_root_object = "index.html"
+  price_class         = "PriceClass_100"
   aliases             = var.dashboard_domain_name != "" ? [var.dashboard_domain_name] : []
 
   # S3 origin for static assets
@@ -124,13 +125,7 @@ resource "aws_cloudfront_distribution" "dashboard" {
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = local.s3_origin_id
     viewer_protocol_policy = "redirect-to-https"
-
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
 
     function_association {
       event_type   = "viewer-request"
@@ -138,25 +133,15 @@ resource "aws_cloudfront_distribution" "dashboard" {
     }
   }
 
-  # API behavior: forward to Lambda
+  # API behavior: forward to Lambda (no caching, forward all viewer headers except Host)
   ordered_cache_behavior {
-    path_pattern           = "/api/*"
-    allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods         = ["GET", "HEAD"]
-    target_origin_id       = local.lambda_origin_id
-    viewer_protocol_policy = "redirect-to-https"
-
-    forwarded_values {
-      query_string = true
-      headers      = ["Authorization", "Content-Type"]
-      cookies {
-        forward = "all"
-      }
-    }
-
-    min_ttl     = 0
-    default_ttl = 0
-    max_ttl     = 0
+    path_pattern             = "/api/*"
+    allowed_methods          = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods           = ["GET", "HEAD"]
+    target_origin_id         = local.lambda_origin_id
+    viewer_protocol_policy   = "redirect-to-https"
+    cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled
+    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # AllViewerExceptHostHeader
 
     function_association {
       event_type   = "viewer-request"
