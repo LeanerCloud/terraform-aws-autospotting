@@ -103,9 +103,7 @@ resource "aws_lambda_function" "autospotting" {
         STRIPE_PUBLISHABLE_KEY_SECRET_ARN = aws_secretsmanager_secret.stripe_publishable_key[0].arn
         STRIPE_WEBHOOK_SECRET_ARN         = aws_secretsmanager_secret.stripe_webhook_secret[0].arn
         STRIPE_PRICE_ID_SECRET_ARN        = aws_secretsmanager_secret.stripe_price_id[0].arn
-        # CFN seeds GlobalConfigTable via StoreDashboardConfig custom resource;
-        # we pass it as env var instead (Go checks env var first, then DynamoDB)
-        DASHBOARD_URL = var.dashboard_domain_name != "" ? "https://${var.dashboard_domain_name}" : ""
+        DASHBOARD_URL                     = var.dashboard_domain_name != "" ? "https://${var.dashboard_domain_name}" : ""
       } : {},
 
       # RISP coverage table reference (conditional)
@@ -117,6 +115,27 @@ resource "aws_lambda_function" "autospotting" {
   depends_on = [
     docker_registry_image.destination,
   ]
+}
+
+# Seed GlobalConfig table with DashboardURL (matching CFN StoreDashboardConfig)
+resource "aws_dynamodb_table_item" "dashboard_url_config" {
+  count      = var.enable_cost_dashboard && var.dashboard_domain_name != "" ? 1 : 0
+  table_name = aws_dynamodb_table.global_config[0].name
+  hash_key   = "PK"
+  range_key  = "SK"
+
+  item = jsonencode({
+    PK          = { S = "CONFIG" }
+    SK          = { S = "DashboardURL" }
+    Value       = { S = "https://${var.dashboard_domain_name}" }
+    Type        = { S = "string" }
+    Category    = { S = "email" }
+    Description = { S = "Dashboard URL for password reset and invitation emails." }
+  })
+
+  lifecycle {
+    ignore_changes = [item]
+  }
 }
 
 data "aws_iam_policy_document" "lambda_policy" {
