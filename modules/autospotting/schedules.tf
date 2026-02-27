@@ -54,12 +54,9 @@ resource "aws_cloudwatch_event_target" "risp_collection" {
   }
 }
 
-# Invoice generation: monthly 1st at 9AM UTC (conditional on enable_cost_dashboard)
-# CFN gates on SaaSMode; we gate on enable_cost_dashboard because it creates the
-# required InvoicesTable and other dependencies. Invoice generation is logically
-# independent but shares infrastructure with the cost dashboard.
+# Invoice generation: monthly 1st at 9AM UTC (matching CFN: conditional on saas_mode)
 resource "aws_cloudwatch_event_rule" "invoice_generation" {
-  count               = var.enable_cost_dashboard ? 1 : 0
+  count               = var.saas_mode ? 1 : 0
   name                = "${module.label.id}-invoice-generation"
   description         = "Monthly invoice generation"
   schedule_expression = "cron(0 9 1 * ? *)"
@@ -68,7 +65,7 @@ resource "aws_cloudwatch_event_rule" "invoice_generation" {
 }
 
 resource "aws_cloudwatch_event_target" "invoice_generation" {
-  count     = var.enable_cost_dashboard ? 1 : 0
+  count     = var.saas_mode ? 1 : 0
   rule      = aws_cloudwatch_event_rule.invoice_generation[0].name
   target_id = "invoice-generation"
   arn       = aws_sqs_queue.autospotting_fifo_queue.arn
@@ -109,7 +106,7 @@ resource "aws_cloudwatch_event_target" "trial_expiration" {
 
 # SQS queue policy additions for scheduled events
 resource "aws_sqs_queue_policy" "scheduled_events" {
-  count     = var.enable_cost_dashboard || var.enable_risp_coverage || var.saas_mode ? 1 : 0
+  count     = var.enable_risp_coverage || var.saas_mode ? 1 : 0
   queue_url = aws_sqs_queue.autospotting_fifo_queue.url
 
   policy = jsonencode({
@@ -127,7 +124,7 @@ resource "aws_sqs_queue_policy" "scheduled_events" {
           ArnEquals = {
             "aws:SourceArn" = compact([
               var.enable_risp_coverage ? aws_cloudwatch_event_rule.risp_collection[0].arn : "",
-              var.enable_cost_dashboard ? aws_cloudwatch_event_rule.invoice_generation[0].arn : "",
+              var.saas_mode ? aws_cloudwatch_event_rule.invoice_generation[0].arn : "",
               var.saas_mode ? aws_cloudwatch_event_rule.trial_expiration[0].arn : "",
             ])
           }
