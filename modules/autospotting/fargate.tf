@@ -152,8 +152,6 @@ resource "aws_cloudwatch_event_rule" "event_rule" {
   name                = "${module.label.id}-rule"
   description         = ""
   schedule_expression = "rate(1 hour)"
-  role_arn            = aws_iam_role.task_scheduler_role.arn
-
 
   tags = {
     Name = "${module.label.id}-rule"
