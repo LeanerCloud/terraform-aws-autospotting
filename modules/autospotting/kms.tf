@@ -15,7 +15,16 @@ resource "aws_kms_key" "dynamodb" {
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         }
-        Action   = "kms:*"
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:GenerateDataKeyWithoutPlaintext",
+          "kms:DescribeKey",
+          "kms:CreateGrant",
+          "kms:RetireGrant",
+          "kms:RevokeGrant",
+        ]
         Resource = "*"
       },
       {
@@ -65,7 +74,16 @@ resource "aws_kms_key" "sns" {
         Principal = {
           AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         }
-        Action   = "kms:*"
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:GenerateDataKeyWithoutPlaintext",
+          "kms:DescribeKey",
+          "kms:CreateGrant",
+          "kms:RetireGrant",
+          "kms:RevokeGrant",
+        ]
         Resource = "*"
       },
       {
