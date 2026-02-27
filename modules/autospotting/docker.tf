@@ -15,6 +15,25 @@ resource "aws_ecr_repository" "autospotting" {
   }
 }
 
+resource "aws_ecr_lifecycle_policy" "autospotting" {
+  repository = aws_ecr_repository.autospotting.name
+
+  policy = jsonencode({
+    rules = [{
+      rulePriority = 1
+      description  = "Keep last 10 images"
+      selection = {
+        tagStatus   = "any"
+        countType   = "imageCountMoreThan"
+        countNumber = 10
+      }
+      action = {
+        type = "expire"
+      }
+    }]
+  })
+}
+
 data "aws_ecr_authorization_token" "source" {
   count       = var.lambda_use_public_ecr ? 0 : 1
   registry_id = var.lambda_use_public_ecr ? null : split(".", var.lambda_source_ecr)[0]
