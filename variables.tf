@@ -12,22 +12,6 @@ EOF
   default     = ""
 }
 
-variable "autospotting_allow_parallel_instance_replacements" {
-  type        = string
-  description = <<EOF
-    Controls whether AutoSpotting should allow parallel instance replacements
-    or force them to happen in sequence. This is by default disabled because
-    it may require the increase of the Maximum capacity of the autoscaling
-    group to double the desired capacity, and/or service quota increases for
-    EC2 instances.
-  EOF
-  default     = "true"
-  validation {
-    condition     = contains(["true", "false"], var.autospotting_allow_parallel_instance_replacements)
-    error_message = "Valid value is one of the following: true, false."
-  }
-}
-
 variable "autospotting_automated_instance_data_update" {
   description = <<EOF
     Controls whether AutoSpotting should automatically update its embedded

@@ -35,7 +35,6 @@ resource "aws_lambda_function" "autospotting" {
     variables = merge(
       {
         # Core configuration
-        ALLOW_PARALLEL_INSTANCE_REPLACEMENTS     = var.autospotting_allow_parallel_instance_replacements
         ALLOWED_INSTANCE_TYPES                   = var.autospotting_allowed_instance_types
         AUTOMATED_INSTANCE_DATA_UPDATE           = var.autospotting_automated_instance_data_update
         BIDDING_POLICY                           = var.autospotting_bidding_policy

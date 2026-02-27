@@ -69,15 +69,14 @@ module "autospotting" {
   sqs_fifo_queue_name    = "${module.label.id}.fifo"
   notify_email_addresses = var.notify_email_addresses
 
-  autospotting_allow_parallel_instance_replacements = var.autospotting_allow_parallel_instance_replacements
-  autospotting_allowed_instance_types               = var.autospotting_allowed_instance_types
-  autospotting_automated_instance_data_update       = var.autospotting_automated_instance_data_update
-  autospotting_bidding_policy                       = var.autospotting_bidding_policy
-  autospotting_consider_ebs_bandwidth               = var.autospotting_consider_ebs_bandwidth
-  autospotting_cron_schedule                        = var.autospotting_cron_schedule
-  autospotting_cron_schedule_state                  = var.autospotting_cron_schedule_state
-  autospotting_cron_timezone                        = var.autospotting_cron_timezone
-  autospotting_disallowed_instance_types            = var.autospotting_disallowed_instance_types
+  autospotting_allowed_instance_types         = var.autospotting_allowed_instance_types
+  autospotting_automated_instance_data_update = var.autospotting_automated_instance_data_update
+  autospotting_bidding_policy                 = var.autospotting_bidding_policy
+  autospotting_consider_ebs_bandwidth         = var.autospotting_consider_ebs_bandwidth
+  autospotting_cron_schedule                  = var.autospotting_cron_schedule
+  autospotting_cron_schedule_state            = var.autospotting_cron_schedule_state
+  autospotting_cron_timezone                  = var.autospotting_cron_timezone
+  autospotting_disallowed_instance_types      = var.autospotting_disallowed_instance_types
 
   autospotting_enable_instance_rebalance_recommendation = var.autospotting_enable_instance_rebalance_recommendation
   autospotting_instance_types_per_az                    = var.autospotting_instance_types_per_az

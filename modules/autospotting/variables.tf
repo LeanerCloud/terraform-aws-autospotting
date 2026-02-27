@@ -13,11 +13,6 @@ variable "autospotting_tag_filtering_mode" {}
 variable "autospotting_tag_filters" {}
 variable "autospotting_termination_notification_action" {}
 
-variable "autospotting_allow_parallel_instance_replacements" {
-  type        = bool
-  description = "Flag to control whether Autospotting should replace instances in parallel (true) or sequentially (false)."
-}
-
 variable "autospotting_automated_instance_data_update" {
   type        = bool
   description = "Flag to control whether Autospotting should automatically download and use the latest instance types data."
