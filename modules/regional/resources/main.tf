@@ -119,6 +119,43 @@ resource "aws_cloudwatch_event_target" "autospotting_regional_autoscaling_lifecy
   }
 }
 
+# Event rule for capturing EC2 launch failures (InsufficientInstanceCapacity)
+resource "aws_cloudwatch_event_rule" "autospotting_regional_ice_error_event_capture" {
+  name        = "autospotting_ice_error_event_capture_${module.label.id}"
+  description = "Captures EC2 launch failures due to InsufficientInstanceCapacity"
+
+  event_pattern = <<PATTERN
+{
+  "detail-type": [
+    "AWS API Call via CloudTrail"
+  ],
+  "source": [
+    "aws.ec2"
+  ],
+  "detail": {
+    "eventName": [
+      "RunInstances",
+      "CreateFleet"
+    ],
+    "errorCode": [
+      "InsufficientInstanceCapacity",
+      "InsufficientHostCapacity",
+      "Unsupported"
+    ]
+  }
+}
+PATTERN
+}
+
+resource "aws_cloudwatch_event_target" "autospotting_regional_ice_error_event_capture" {
+  rule     = aws_cloudwatch_event_rule.autospotting_regional_ice_error_event_capture.name
+  arn      = data.aws_region.current.id == var.main_region ? data.aws_arn.autospotting_sqs_queue_arn.arn : var.event_bus_arn
+  role_arn = data.aws_region.current.id == var.main_region ? "" : var.put_event_role_arn
+  sqs_target {
+    message_group_id = "autospotting_${module.label.id}"
+  }
+}
+
 resource "aws_sqs_queue_policy" "autospotting_events_to_sqs" {
   count     = data.aws_region.current.id == var.main_region ? 1 : 0
   queue_url = var.autospotting_sqs_queue_url
@@ -149,6 +186,7 @@ data "aws_iam_policy_document" "autospotting_sqs_policy" {
         aws_cloudwatch_event_rule.autospotting_regional_ec2_instance_launch_event_capture.arn,
         aws_cloudwatch_event_rule.autospotting_regional_ec2_spot_event_capture.arn,
         aws_cloudwatch_event_rule.autospotting_regional_autoscaling_lifecycle_hook_event_capture.arn,
+        aws_cloudwatch_event_rule.autospotting_regional_ice_error_event_capture.arn,
       ]
     }
   }
