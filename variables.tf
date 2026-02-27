@@ -134,7 +134,7 @@ variable "autospotting_enable_instance_rebalance_recommendation" {
 
 variable "autospotting_instance_types_per_az" {
   type        = number
-  default     = 1
+  default     = 2
   description = "Number of instance types to diversify over for each availability zone. Can be overridden on a per-group basis using the tag  'autospotting_number_of_instance_types_per_az'."
 }
 
@@ -280,7 +280,7 @@ variable "lambda_source_image_tag" {
 
 variable "lambda_memory_size" {
   description = "Memory size allocated to the lambda run"
-  default     = 512
+  default     = 1024
 }
 
 variable "lambda_cpu_architecture" {
@@ -516,7 +516,7 @@ variable "create_service_linked_roles" {
 variable "autospotting_handle_lifecycle_hook_events" {
   description = "Enable handling of ASG lifecycle hook events"
   type        = bool
-  default     = false
+  default     = true
 }
 
 # RISP Coverage

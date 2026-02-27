@@ -250,7 +250,7 @@ variable "create_service_linked_roles" {
 variable "autospotting_handle_lifecycle_hook_events" {
   description = "Enable handling of ASG lifecycle hook events"
   type        = bool
-  default     = false
+  default     = true
 }
 
 # RISP Coverage
