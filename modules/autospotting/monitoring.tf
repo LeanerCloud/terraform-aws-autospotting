@@ -1,5 +1,6 @@
-# ──── CloudWatch Alarms (conditional on enable_cost_dashboard) ────
+# ──── CloudWatch Alarms ────
 
+# Lambda alarms are conditional on enable_cost_dashboard (matches CFN)
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   count               = var.enable_cost_dashboard ? 1 : 0
   alarm_name          = "${module.label.id}-lambda-errors"
@@ -10,6 +11,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   period              = 300
   statistic           = "Sum"
   threshold           = 5
+  treat_missing_data  = "notBreaching"
   alarm_description   = "Lambda function error rate exceeded threshold"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
 
@@ -29,7 +31,8 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   namespace           = "AWS/Lambda"
   period              = 300
   statistic           = "Sum"
-  threshold           = 0
+  threshold           = 1
+  treat_missing_data  = "notBreaching"
   alarm_description   = "Lambda function is being throttled"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
 
@@ -50,6 +53,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   period              = 300
   statistic           = "Average"
   threshold           = var.lambda_timeout * 1000 * 0.9
+  treat_missing_data  = "notBreaching"
   alarm_description   = "Lambda function duration approaching timeout"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
 
@@ -60,15 +64,15 @@ resource "aws_cloudwatch_metric_alarm" "lambda_duration" {
   tags = module.label.tags
 }
 
+# SQS and DynamoDB alarms are unconditional (matches CFN)
 resource "aws_cloudwatch_metric_alarm" "sqs_queue_depth" {
-  count               = var.enable_cost_dashboard ? 1 : 0
   alarm_name          = "${module.label.id}-sqs-queue-depth"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 3
+  evaluation_periods  = 2
   metric_name         = "ApproximateNumberOfMessagesVisible"
   namespace           = "AWS/SQS"
   period              = 300
-  statistic           = "Maximum"
+  statistic           = "Average"
   threshold           = 100
   alarm_description   = "SQS queue depth exceeded threshold"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
@@ -81,7 +85,6 @@ resource "aws_cloudwatch_metric_alarm" "sqs_queue_depth" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "sqs_dlq_messages" {
-  count               = var.enable_cost_dashboard ? 1 : 0
   alarm_name          = "${module.label.id}-sqs-dlq-messages"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
@@ -89,7 +92,7 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_messages" {
   namespace           = "AWS/SQS"
   period              = 300
   statistic           = "Sum"
-  threshold           = 0
+  threshold           = 1
   alarm_description   = "Messages in dead letter queue indicate processing failures"
   alarm_actions       = [aws_sns_topic.email_notification.arn]
 
@@ -101,10 +104,9 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_messages" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "dynamodb_throttle" {
-  count               = var.enable_multi_account ? 1 : 0
   alarm_name          = "${module.label.id}-dynamodb-throttles"
-  alarm_description   = "Alerts when DynamoDB requests are being throttled"
-  metric_name         = "ThrottledRequests"
+  alarm_description   = "Alerts when DynamoDB requests have errors"
+  metric_name         = "UserErrors"
   namespace           = "AWS/DynamoDB"
   statistic           = "Sum"
   period              = 300
