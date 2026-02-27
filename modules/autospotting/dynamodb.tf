@@ -1,7 +1,40 @@
-# ──── Core Multi-Account Tables (conditional on enable_multi_account) ────
+# ──── Core Tables (always created, matching CFN behavior) ────
+#
+# These tables are always created regardless of enable_multi_account because the
+# Go binary references them unconditionally (Locking, DeferredActions for deferred
+# spot replacements, CustomerAccounts for account tracking even in single-account mode).
+
+moved {
+  from = aws_dynamodb_table.customer_accounts[0]
+  to   = aws_dynamodb_table.customer_accounts
+}
+
+moved {
+  from = aws_dynamodb_table.companies[0]
+  to   = aws_dynamodb_table.companies
+}
+
+moved {
+  from = aws_dynamodb_table.blocked_accounts[0]
+  to   = aws_dynamodb_table.blocked_accounts
+}
+
+moved {
+  from = aws_dynamodb_table.rate_limit[0]
+  to   = aws_dynamodb_table.rate_limit
+}
+
+moved {
+  from = aws_dynamodb_table.locking[0]
+  to   = aws_dynamodb_table.locking
+}
+
+moved {
+  from = aws_dynamodb_table.deferred_actions[0]
+  to   = aws_dynamodb_table.deferred_actions
+}
 
 resource "aws_dynamodb_table" "customer_accounts" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-CustomerAccounts-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "AccountId"
@@ -67,7 +100,6 @@ resource "aws_dynamodb_table" "customer_accounts" {
 }
 
 resource "aws_dynamodb_table" "companies" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-Companies-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "CompanyId"
@@ -92,7 +124,6 @@ resource "aws_dynamodb_table" "companies" {
 }
 
 resource "aws_dynamodb_table" "blocked_accounts" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-BlockedAccounts-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "AccountId"
@@ -122,7 +153,6 @@ resource "aws_dynamodb_table" "blocked_accounts" {
 }
 
 resource "aws_dynamodb_table" "rate_limit" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-RateLimit-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "PK"
@@ -158,7 +188,6 @@ resource "aws_dynamodb_table" "rate_limit" {
 }
 
 resource "aws_dynamodb_table" "locking" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-Locking-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockKey"
@@ -188,7 +217,6 @@ resource "aws_dynamodb_table" "locking" {
 }
 
 resource "aws_dynamodb_table" "deferred_actions" {
-  count        = var.enable_multi_account ? 1 : 0
   name         = "${module.label.id}-DeferredActions-${random_id.suffix.hex}"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "ActionKey"

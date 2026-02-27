@@ -67,21 +67,19 @@ resource "aws_lambda_function" "autospotting" {
         MAIN_ACCOUNT_ID              = data.aws_caller_identity.current.account_id
         SAAS_MODE                    = var.saas_mode
 
+        # Core tables (always created, matching CFN)
+        CUSTOMER_ACCOUNTS_TABLE = aws_dynamodb_table.customer_accounts.name
+        COMPANIES_TABLE         = aws_dynamodb_table.companies.name
+        BLOCKED_ACCOUNTS_TABLE  = aws_dynamodb_table.blocked_accounts.name
+        RATE_LIMIT_TABLE        = aws_dynamodb_table.rate_limit.name
+        LOCKING_TABLE           = aws_dynamodb_table.locking.name
+        DEFERRED_ACTIONS_TABLE  = aws_dynamodb_table.deferred_actions.name
+
         # RISP Coverage
         ENABLE_RISP_COVERAGE          = var.enable_risp_coverage
         RISP_BILLING_ACCOUNT_ROLE_ARN = var.risp_billing_account_role_arn
         RISP_COVERAGE_THRESHOLD       = var.risp_coverage_threshold
       },
-
-      # Multi-account table references (conditional)
-      var.enable_multi_account ? {
-        CUSTOMER_ACCOUNTS_TABLE = aws_dynamodb_table.customer_accounts[0].name
-        COMPANIES_TABLE         = aws_dynamodb_table.companies[0].name
-        BLOCKED_ACCOUNTS_TABLE  = aws_dynamodb_table.blocked_accounts[0].name
-        RATE_LIMIT_TABLE        = aws_dynamodb_table.rate_limit[0].name
-        LOCKING_TABLE           = aws_dynamodb_table.locking[0].name
-        DEFERRED_ACTIONS_TABLE  = aws_dynamodb_table.deferred_actions[0].name
-      } : {},
 
       # Cost dashboard references (conditional)
       var.enable_cost_dashboard ? {
@@ -292,6 +290,50 @@ resource "aws_lambda_event_source_mapping" "autospotting_lambda_event_source_map
   event_source_arn = aws_sqs_queue.autospotting_fifo_queue.arn
   batch_size       = 1
   function_name    = aws_lambda_function.autospotting.arn
+}
+
+# DeferredActions DynamoDB Streams event source mapping
+# Processes TTL-expired items (REMOVE events from DynamoDB service) for deferred spot replacements
+resource "aws_lambda_event_source_mapping" "deferred_actions_stream" {
+  count             = var.use_existing_iam_role ? 0 : 1
+  event_source_arn  = aws_dynamodb_table.deferred_actions.stream_arn
+  function_name     = aws_lambda_function.autospotting.arn
+  starting_position = "LATEST"
+  batch_size        = 1
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["REMOVE"]
+        userIdentity = {
+          type        = ["Service"]
+          principalId = ["dynamodb.amazonaws.com"]
+        }
+      })
+    }
+  }
+
+  depends_on = [aws_iam_role_policy.autospotting_policy_lambda]
+}
+
+resource "aws_lambda_event_source_mapping" "deferred_actions_stream_existing_role" {
+  count             = var.use_existing_iam_role ? 1 : 0
+  event_source_arn  = aws_dynamodb_table.deferred_actions.stream_arn
+  function_name     = aws_lambda_function.autospotting.arn
+  starting_position = "LATEST"
+  batch_size        = 1
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["REMOVE"]
+        userIdentity = {
+          type        = ["Service"]
+          principalId = ["dynamodb.amazonaws.com"]
+        }
+      })
+    }
+  }
 }
 
 resource "aws_sns_topic" "email_notification" {

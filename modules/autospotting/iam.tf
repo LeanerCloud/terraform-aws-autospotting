@@ -1,6 +1,6 @@
 # ──── Base IAM additions (always created) ────
 
-# Additional base permissions: CloudTrail and S3 config bucket
+# Additional base permissions: CloudTrail, S3 config bucket, core DynamoDB tables, STS
 data "aws_iam_policy_document" "autospotting_policy_extended" {
   count = var.use_existing_iam_role ? 0 : 1
 
@@ -42,20 +42,8 @@ data "aws_iam_policy_document" "autospotting_policy_extended" {
     ]
     resources = ["*"]
   }
-}
 
-resource "aws_iam_role_policy" "autospotting_policy_extended" {
-  count  = var.use_existing_iam_role ? 0 : 1
-  name   = "policy_extended_${module.label.id}"
-  role   = aws_iam_role.autospotting_role[0].id
-  policy = data.aws_iam_policy_document.autospotting_policy_extended[0].json
-}
-
-# ──── Multi-account IAM (conditional on enable_multi_account) ────
-
-data "aws_iam_policy_document" "multi_account_policy" {
-  count = !var.use_existing_iam_role && var.enable_multi_account ? 1 : 0
-
+  # Cross-account role assumption (always present, matching CFN LambdaPolicyExtended)
   statement {
     sid    = "AssumeCustomerRoles"
     effect = "Allow"
@@ -68,6 +56,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
     ]
   }
 
+  # Core DynamoDB tables (always created, matching CFN)
   statement {
     sid    = "DynamoDBCustomerAccounts"
     effect = "Allow"
@@ -80,8 +69,8 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:Query",
     ]
     resources = [
-      aws_dynamodb_table.customer_accounts[0].arn,
-      "${aws_dynamodb_table.customer_accounts[0].arn}/index/*",
+      aws_dynamodb_table.customer_accounts.arn,
+      "${aws_dynamodb_table.customer_accounts.arn}/index/*",
     ]
   }
 
@@ -97,7 +86,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:Query",
     ]
     resources = [
-      aws_dynamodb_table.companies[0].arn,
+      aws_dynamodb_table.companies.arn,
     ]
   }
 
@@ -112,7 +101,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:Query",
     ]
     resources = [
-      aws_dynamodb_table.blocked_accounts[0].arn,
+      aws_dynamodb_table.blocked_accounts.arn,
     ]
   }
 
@@ -126,7 +115,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:Query",
     ]
     resources = [
-      aws_dynamodb_table.rate_limit[0].arn,
+      aws_dynamodb_table.rate_limit.arn,
     ]
   }
 
@@ -139,7 +128,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:DeleteItem",
     ]
     resources = [
-      aws_dynamodb_table.locking[0].arn,
+      aws_dynamodb_table.locking.arn,
     ]
   }
 
@@ -152,7 +141,7 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:GetItem",
     ]
     resources = [
-      aws_dynamodb_table.deferred_actions[0].arn,
+      aws_dynamodb_table.deferred_actions.arn,
     ]
   }
 
@@ -166,16 +155,16 @@ data "aws_iam_policy_document" "multi_account_policy" {
       "dynamodb:ListStreams",
     ]
     resources = [
-      "${aws_dynamodb_table.deferred_actions[0].arn}/stream/*",
+      "${aws_dynamodb_table.deferred_actions.arn}/stream/*",
     ]
   }
 }
 
-resource "aws_iam_role_policy" "multi_account_policy" {
-  count  = !var.use_existing_iam_role && var.enable_multi_account ? 1 : 0
-  name   = "policy_multi_account_${module.label.id}"
+resource "aws_iam_role_policy" "autospotting_policy_extended" {
+  count  = var.use_existing_iam_role ? 0 : 1
+  name   = "policy_extended_${module.label.id}"
   role   = aws_iam_role.autospotting_role[0].id
-  policy = data.aws_iam_policy_document.multi_account_policy[0].json
+  policy = data.aws_iam_policy_document.autospotting_policy_extended[0].json
 }
 
 # ──── Cost Dashboard IAM (conditional on enable_cost_dashboard) ────
@@ -219,6 +208,7 @@ data "aws_iam_policy_document" "cost_dashboard_policy" {
       "s3:PutObject",
       "s3:ListBucket",
       "s3:DeleteObject",
+      "s3:GetBucketLocation",
     ]
     resources = [
       aws_s3_bucket.cost_history[0].arn,
@@ -241,13 +231,15 @@ data "aws_iam_policy_document" "cost_dashboard_policy" {
   }
 
   statement {
-    sid    = "GlueCatalogRead"
+    sid    = "GlueCatalogAccess"
     effect = "Allow"
     actions = [
       "glue:GetDatabase",
       "glue:GetTable",
       "glue:GetTables",
       "glue:GetPartitions",
+      "glue:BatchCreatePartition",
+      "glue:CreatePartition",
     ]
     resources = [
       "arn:aws:glue:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:catalog",
@@ -300,8 +292,9 @@ data "aws_iam_policy_document" "risp_coverage_policy" {
     effect = "Allow"
     actions = [
       "ce:GetReservationCoverage",
+      "ce:GetReservationUtilization",
       "ce:GetSavingsPlansCoverage",
-      "ce:GetCostAndUsage",
+      "ce:GetSavingsPlansUtilization",
     ]
     resources = ["*"]
   }
@@ -322,6 +315,7 @@ data "aws_iam_policy_document" "risp_coverage_policy" {
       "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
       "dynamodb:Query",
       "dynamodb:Scan",
     ]

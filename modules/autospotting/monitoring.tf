@@ -115,7 +115,7 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_throttle" {
   alarm_actions       = [aws_sns_topic.email_notification.arn]
 
   dimensions = {
-    TableName = aws_dynamodb_table.customer_accounts[0].name
+    TableName = aws_dynamodb_table.customer_accounts.name
   }
 
   tags = module.label.tags
